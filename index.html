@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>공정위 블로그 검사기</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-800 p-6">
+  <div class="max-w-4xl mx-auto">
+    <h1 class="text-2xl font-bold mb-4">📝 공정위 블로그 검사기</h1>
+    
+    <!-- 블로그 ID 입력 -->
+    <div class="mb-6">
+      <label for="blogId" class="block text-sm font-medium text-gray-700">블로그 ID 입력:</label>
+      <div class="flex mt-1">
+        <input type="text" id="blogId" class="flex-1 border rounded px-3 py-2" placeholder="예: chomossi_record" />
+        <button onclick="fetchBlogPosts()" class="ml-2 bg-blue-600 text-white px-4 py-2 rounded">검사 시작</button>
+      </div>
+    </div>
+
+    <!-- 공정위 도메인 관리 -->
+    <section class="mb-6">
+      <h2 class="text-lg font-semibold mb-2">⚙️ 공정위 이미지 도메인 설정</h2>
+      <div class="flex gap-2 mb-2">
+        <input id="fairLinkInput" type="text" placeholder="예: reviewnote.co.kr/gongjeong/" class="flex-1 border rounded px-2 py-1 text-sm" />
+        <button onclick="addFairLink()" class="bg-blue-600 text-white px-3 py-1 text-sm rounded">추가</button>
+      </div>
+      <ul id="fairLinkList" class="text-sm text-gray-700 space-y-1"></ul>
+    </section>
+
+    <!-- 결과 표시 -->
+    <ul id="postList" class="space-y-4"></ul>
+  </div>
+
+  <script>
+    // 전역 리스트
+    let fairTradeImageLinks = [
+      "xn--939au0g4vj8sq.net",
+      "blogmall.net/campaign/blogWidget",
+      "d3i7y4ugnppb9p.cloudfront.net/contract/track/",
+      "www.reviewnote.co.kr/gongjeong/",
+      "dinnerqueen.net/reviews/image/",
+      "revu.net/campaign/"
+    ];
+
+    // 렌더링
+    function renderFairLinks() {
+      const list = document.getElementById("fairLinkList");
+      list.innerHTML = "";
+      fairTradeImageLinks.forEach((link, idx) => {
+        const li = document.createElement("li");
+        li.innerHTML = `
+          ${idx + 1}. ${link}
+          <button onclick="removeFairLink(${idx})" class="ml-2 text-red-500 text-xs">❌</button>
+        `;
+        list.appendChild(li);
+      });
+    }
+
+    // 추가
+    function addFairLink() {
+      const input = document.getElementById("fairLinkInput");
+      const value = input.value.trim();
+      if (!value) return;
+      if (fairTradeImageLinks.includes(value)) {
+        alert("이미 등록된 링크입니다.");
+        return;
+      }
+      fairTradeImageLinks.push(value);
+      input.value = "";
+      renderFairLinks();
+    }
+
+    // 제거
+    function removeFairLink(index) {
+      fairTradeImageLinks.splice(index, 1);
+      renderFairLinks();
+    }
+
+    // 초기 렌더
+    renderFairLinks();
+
+    // 블로그 포스트 가져오기
+    async function fetchBlogPosts() {
+    const blogId = document.getElementById("blogId").value.trim();
+    if (!blogId) {
+        alert("블로그 ID를 입력해주세요.");
+        return;
+    }
+
+    try {
+        //const response = await fetch("http://localhost:3000/analyze_blog", {
+        const response = await fetch("https://fairblog.onrender.com/analyze_blog", {
+
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            blogId,
+            fairTradeImageLinks
+        })
+        });
+
+        if (!response.ok) throw new Error("네트워크 오류");
+        const data = await response.json();
+        renderPosts(data.posts);
+    } catch (err) {
+        console.error("분석 오류:", err);
+        alert("분석에 실패했습니다.");
+    }
+}
+
+
+    // 포스트 렌더링
+    function renderPosts(posts) {
+      const list = document.getElementById("postList");
+      list.innerHTML = "";
+
+      posts.forEach(post => {
+        const hasFair = post.fair_trade_img_url;
+        const isSuspicious = hasFair && post.fair_trade_img_position !== 1;
+        const useFairImage = post.fair_trade_img_url && post.fair_trade_img_position === 1;
+        const imageSrc = useFairImage ? post.fair_trade_img_url : post.first_image_url;
+        const proxyImageSrc = `http://localhost:3000/proxy?url=${encodeURIComponent(imageSrc)}`;
+
+        // 상태 태그 구성
+        let tag = '';
+        if (hasFair && post.fair_trade_img_position === 1) {
+          tag = `<span class="inline-block text-green-700 bg-green-100 text-sm px-2 py-1 rounded">✅ 공정위 이미지 (정상)</span>`;
+        } else if (hasFair && post.fair_trade_img_position !== 1) {
+          tag = `<span class="inline-block text-red-700 bg-red-100 text-sm px-2 py-1 rounded">❗ 공정위 이미지 있음, 첫 번째 아님</span>`;
+        } else {
+          tag = `<span class="inline-block text-gray-600 bg-gray-100 text-sm px-2 py-1 rounded">공정위 이미지 없음</span>`;
+        }
+
+        // 카드 생성
+        const li = document.createElement("li");
+        li.className = "border rounded-md p-4 mb-4 bg-white shadow-sm";
+
+        li.innerHTML = `
+          <div class="flex gap-4 items-start">
+            <img
+                src="${proxyImageSrc}"
+                alt="썸네일"
+                class="w-24 h-24 object-contain bg-gray-100 border rounded-md"
+                style="user-select: none;"
+                onerror="this.style.display='none'"
+            />
+            <div class="flex-1">
+              <h2 class="text-lg font-semibold"><a href="${post.url}" target="_blank" class="hover:underline">${post.title}</a></h2>
+              <p class="text-sm text-gray-500">${post.date}</p>
+              ${!hasFair ? `<p class="text-sm mt-1 text-gray-700">${post.first_100_chars}</p>` : ''}
+              <p class="mt-2">${tag}</p>
+            </div>
+          </div>
+        `;
+
+        list.appendChild(li);
+      });
+    }
+  </script>
+</body>
+</html>
