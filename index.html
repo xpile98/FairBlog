@@ -19,6 +19,9 @@
       </div>
     </div>
 
+    <div id="loadingBar" class="w-full bg-blue-200 h-2 mt-4 hidden">
+      <div class="bg-blue-600 h-2 animate-pulse" style="width: 100%;"></div>
+    </div>
     <!-- 공정위 도메인 관리 -->
     <section class="mb-6">
       <h2 class="text-lg font-semibold mb-2">⚙️ 공정위 이미지 도메인 설정</h2>
@@ -31,6 +34,12 @@
 
     <!-- 결과 표시 -->
     <ul id="postList" class="space-y-4"></ul>
+    <section class="mt-8">
+      <h2 class="text-lg font-semibold mb-2">📄 신고용 요약 TXT</h2>
+      <pre id="reportContent" class="w-full p-3 bg-gray-100 border rounded text-sm whitespace-pre-wrap h-64 overflow-auto"></pre>
+      <button onclick="downloadTxt()" class="mt-2 bg-green-600 text-white px-4 py-2 rounded">TXT 다운로드</button>
+    </section>
+
   </div>
 
   <script>
@@ -78,6 +87,13 @@
       renderFairLinks();
     }
 
+    function showLoading() {
+      document.getElementById("loadingBar").classList.remove("hidden");
+    }
+    function hideLoading() {
+      document.getElementById("loadingBar").classList.add("hidden");
+    }
+
     // 초기 렌더
     renderFairLinks();
 
@@ -104,6 +120,7 @@
         if (!response.ok) throw new Error("네트워크 오류");
         const data = await response.json();
         renderPosts(data.posts);
+        renderTxt(data.posts);  // 요약 자동 반영
     } catch (err) {
         console.error("분석 오류:", err);
         alert("분석에 실패했습니다.");
@@ -158,6 +175,69 @@
         list.appendChild(li);
       });
     }
+
+    function renderTxt(posts) {
+      const suspiciousPosts = posts.filter(p =>
+        p.fair_trade_img_url && p.fair_trade_img_position !== 1
+      );
+
+      let txt = "📌 [공정위 문구 있음 + 첫 번째 아님 → 의심 게시글]\n";
+      txt += `총 ${suspiciousPosts.length}건\n`;
+      txt += "────────────────────────────\n\n";
+
+      suspiciousPosts.forEach((p, idx) => {
+        txt += `${idx + 1}) ${p.title || "(제목 없음)"}\n`;
+        txt += `   📎 링크: ${p.url}\n`;
+        txt += `   🖼️ 위치: ${p.fair_trade_img_position}번째\n`;
+        txt += `   🔗 이미지: ${p.fair_trade_img_url}\n\n`;
+      });
+
+      document.getElementById("reportContent").innerText = txt;
+    }
+
+    function downloadTxt() {
+      const content = document.getElementById("reportContent").innerText;
+      const blob = new Blob([content], { type: "text/plain" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "fairblog_report.txt";
+      a.click();
+    }
+
+    async function fetchBlogPosts() {
+      const blogId = document.getElementById("blogId").value.trim();
+      if (!blogId) {
+        alert("블로그 ID를 입력해주세요.");
+        return;
+      }
+
+      showLoading(); // ✅ 시작 시 표시
+
+      try {
+        const response = await fetch("https://fairblog.onrender.com/analyze_blog", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            blogId,
+            fairTradeImageLinks
+          })
+        });
+
+        if (!response.ok) throw new Error("네트워크 오류");
+
+        const data = await response.json();
+        renderPosts(data.posts);
+        renderTxt(data.posts);
+
+      } catch (err) {
+        console.error("분석 오류:", err);
+        alert("분석 중 오류가 발생했습니다.");
+      } finally {
+        hideLoading(); // ✅ 항상 숨김
+      }
+    }
+
+
   </script>
 </body>
 </html>
