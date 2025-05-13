@@ -34,28 +34,25 @@ app.post('/analyze_blog', async (req, res) => {
       console.log(`📄 페이지 ${page}에서 ${items.length}건 수신됨`);
       if (items.length === 0) break;
 
-      for (let i = 0; i < items.length; i += 5) {
-        const batch = items.slice(i, i + 5);
+      const parsePromises = items.map(item => {
+        const logNo = item.logNo;
+        const domainId = item.domainIdOrBlogId;
+        const postUrl = `https://m.blog.naver.com/${domainId}/${logNo}`;
+        return parseBlogPostContent(postUrl, fairTradeImageLinks);
+      });
 
-        const batchPromises = batch.map(item => {
-          const logNo = item.logNo;
-          const domainId = item.domainIdOrBlogId;
-          const postUrl = `https://m.blog.naver.com/${domainId}/${logNo}`;
-          return parseBlogPostContent(postUrl, fairTradeImageLinks);
-        });
+      const results = await Promise.allSettled(parsePromises);
 
-        // ✅ 실패도 감지 가능하게 allSettled 사용
-        const batchResults = await Promise.allSettled(batchPromises);
+      for (const result of results) {
+        if (result.status === "rejected" && result.reason?.code === 429) {
+          console.error("❌ 429 감지됨: 분석 중단");
+          return res.status(429).json({
+            error: "요청이 너무 많아 분석이 차단되었습니다. 잠시 후 다시 시도해주세요."
+          });
+        }
 
-        for (const result of batchResults) {
-          if (result.status === "rejected" && result.reason?.code === 429) {
-            console.error("❌ 429 감지됨: 분석 중단");
-            return res.status(429).json({ error: "요청이 너무 많아 분석이 차단되었습니다. 잠시 후 다시 시도해주세요." });
-          }
-
-          if (result.status === "fulfilled" && result.value) {
-            allPosts.push(result.value);
-          }
+        if (result.status === "fulfilled" && result.value) {
+          allPosts.push(result.value);
         }
       }
     }
