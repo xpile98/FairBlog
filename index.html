@@ -135,7 +135,7 @@
       modeLabel.classList.remove("bg-gray-500");
       modeLabel.classList.add("bg-yellow-600");
     } else {
-      modeLabel.textContent = "✅ 최종 빌드 (20250513_2100)";
+      modeLabel.textContent = "✅ 최종 빌드 (20250513_2110)";
       modeLabel.classList.remove("bg-gray-500");
       modeLabel.classList.add("bg-green-700");
     }
@@ -385,15 +385,16 @@
         );
 
         // 🔁 2단계: 병렬 분석 (n개씩)
-        const allPosts = [];
+        const allPosts = new Array(urls.length); // 결과 저장용 (정렬 유지)
         const batchSize = 8;
         let completed = 0;
 
         for (let i = 0; i < urls.length; i += batchSize) {
           const batch = urls.slice(i, i + batchSize);
 
-          const tasks = batch.map(postUrl =>
-            fetch(analyzeSingleUrl, {
+          const tasks = batch.map((postUrl, idx) => {
+            const realIdx = i + idx; // 전체 인덱스
+            return fetch(analyzeSingleUrl, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
@@ -401,21 +402,23 @@
                 fairTradeImageLinks: domainList
               })
             })
-            .then(r => r.ok ? r.json() : null)
-            .catch(() => null)
-            .then(result => {
-              if (result) allPosts.push(result);
-              completed++;
-              updateProgress(completed, urls.length);
-              loadingText.textContent = `⏳ ${completed} / ${urls.length} 포스트 분석 중...`;
-            })
-          );
+              .then(r => r.ok ? r.json() : null)
+              .catch(() => null)
+              .then(result => {
+                allPosts[realIdx] = result; // ✅ 순서에 맞춰 저장
+                completed++;
+                updateProgress(completed, urls.length);
+                loadingText.textContent = `⏳ ${completed} / ${urls.length} 포스트 분석 중...`;
+              });
+          });
 
           await Promise.allSettled(tasks);
         }
 
         // 🟢 3단계: 결과 렌더링
-        renderPosts(allPosts);
+        const filteredPosts = allPosts.filter(p => p !== null);
+        renderPosts(filteredPosts);
+        //renderPosts(allPosts);
         renderTxt(allPosts);
         loadingText.textContent = `✅ 분석 완료! 총 ${allPosts.length}건`;
 
