@@ -12,7 +12,7 @@ app.use(express.json()); // ✅ JSON 요청 파싱
 console.log("✅ Express 앱 준비됨");
 
 app.post('/analyze_blog', async (req, res) => {
-  const { blogId, fairTradeImageLinks, numPages = 1 } = req.body;
+  const { blogId, numPages = 1, fairTradeImageLinks = [] } = req.body;
 
   if (!blogId || !Array.isArray(fairTradeImageLinks)) {
     return res.status(400).json({ error: "잘못된 요청입니다 (blogId 또는 링크 리스트 없음)" });

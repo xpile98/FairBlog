@@ -63,66 +63,61 @@
 
     <!-- 공정위 도메인 관리 -->
     <section class="mb-6">
-      <h2 class="text-lg font-semibold mb-2">⚙️ 공정위 이미지 도메인 설정</h2>
-      <div class="flex gap-2 mb-2">
-        <input id="fairLinkInput" type="text" placeholder="예: reviewnote.co.kr/gongjeong/" class="flex-1 border rounded px-2 py-1 text-sm" />
-        <button onclick="addFairLink()" class="bg-blue-600 text-white px-3 py-1 text-sm rounded">추가</button>
-      </div>
-      <ul id="fairLinkList" class="text-sm text-gray-700 space-y-1"></ul>
+      <h2 class="text-lg font-semibold mb-2">⚙️ 공정위 이미지 도메인 목록</h2>
+      <ul id="fairLinkList" class="text-sm text-gray-700 space-y-1 pl-1 list-disc list-inside"></ul>
     </section>
 
+    <!-- 테스트/운영 모드 상태 표시 -->
+    <div id="buildModeLabel" class="fixed bottom-2 right-2 text-xs text-white bg-gray-500 px-2 py-1 rounded opacity-70 z-50">
+      모드 표시 중...
+    </div>
   </div>
 
   <script>
-    
-    const isTestMode = false;
+    const isTestMode = location.origin.includes("127.0.0.1") || location.origin.includes("localhost");
 
-    // 전역 리스트
-    let fairTradeImageLinks = [
-      "강남맛집.net",                     //강남맛집 1
-      "xn--939au0g4vj8sq.net",           //강남맛집 2
-      "blogmall.net/",                   //미블
-      "d3i7y4ugnppb9p.cloudfront.net/",  //슈퍼멤버스
-      "www.reviewnote.co.kr/",           //리뷰노트
-      "dinnerqueen.net/",                //디너의여왕
-      "revu.net/",                       //레뷰
-      "reviewplace.co.kr/",              //리뷰플레이스
-      "mateb.kr/",                       //기타체험단
-      "postfiles.pstatic.net/"           //클라우드리뷰
-    ];
+    const modeLabel = document.getElementById("buildModeLabel");
+    if (isTestMode) {
+      modeLabel.textContent = "🧪 테스트 모드 (로컬)";
+      modeLabel.classList.remove("bg-gray-500");
+      modeLabel.classList.add("bg-yellow-600");
+    } else {
+      modeLabel.textContent = "✅ 최종 빌드 (20250513_1443)";
+      modeLabel.classList.remove("bg-gray-500");
+      modeLabel.classList.add("bg-green-700");
+    }
 
-    // 렌더링
+    const fairDomainAliasMap = {
+      "강남맛집.net": "강남맛집",        
+      "xn--939au0g4vj8sq.net": "강남맛집",        
+      "blogmall.net": "미블",        
+      "d3i7y4ugnppb9p.cloudfront.net": "슈퍼멤버스",        
+      "www.reviewnote.co.kr": "리뷰노트",        
+      "dinnerqueen.net": "디너의여왕",        
+      "revu.net": "레뷰",        
+      "reviewplace.co.kr": "리뷰플레이스",       
+      "postfiles.pstatic.net": "클라우드리뷰",     
+      "mateb.kr": "기타체험단"          
+    };
+
+    function getDomainAlias(imageUrl) {
+      for (const domain in fairDomainAliasMap) {
+        if (imageUrl.includes(domain)) {
+          return fairDomainAliasMap[domain];
+        }
+      }
+      return "기타/알 수 없음";
+    }
+
     function renderFairLinks() {
       const list = document.getElementById("fairLinkList");
       list.innerHTML = "";
-      fairTradeImageLinks.forEach((link, idx) => {
+
+      Object.entries(fairDomainAliasMap).forEach(([domain, name], idx) => {
         const li = document.createElement("li");
-        li.innerHTML = `
-          ${idx + 1}. ${link}
-          <button onclick="removeFairLink(${idx})" class="ml-2 text-red-500 text-xs">❌</button>
-        `;
+        li.innerHTML = `${idx + 1}. <strong>${name}</strong> <span class="text-gray-500 text-sm">(${domain})</span>`;
         list.appendChild(li);
       });
-    }
-
-    // 추가
-    function addFairLink() {
-      const input = document.getElementById("fairLinkInput");
-      const value = input.value.trim();
-      if (!value) return;
-      if (fairTradeImageLinks.includes(value)) {
-        alert("이미 등록된 링크입니다.");
-        return;
-      }
-      fairTradeImageLinks.push(value);
-      input.value = "";
-      renderFairLinks();
-    }
-
-    // 제거
-    function removeFairLink(index) {
-      fairTradeImageLinks.splice(index, 1);
-      renderFairLinks();
     }
 
     function showLoading() {
@@ -297,16 +292,29 @@
         p.fair_trade_img_url && p.fair_trade_img_position !== 1
       );
 
+      // 도메인 그룹화
+      const grouped = {};
+
+      suspiciousPosts.forEach(post => {
+        const domainAlias = getDomainAlias(post.fair_trade_img_url);
+        if (!grouped[domainAlias]) grouped[domainAlias] = [];
+        grouped[domainAlias].push(post);
+      });
+
       let txt = "📌 [공정위 문구 있음 + 첫 번째 아님 → 의심 게시글]\n";
       txt += `총 ${suspiciousPosts.length}건\n`;
       txt += "────────────────────────────\n\n";
 
-      suspiciousPosts.forEach((p, idx) => {
-        txt += `${idx + 1}) ${p.title || "(제목 없음)"}\n`;
-        txt += `   📎 링크: ${p.url}\n`;
-        txt += `   🖼️ 위치: ${p.fair_trade_img_position}번째\n`;
-        txt += `   🔗 이미지: ${p.fair_trade_img_url}\n\n`;
-      });
+      for (const domainAlias of Object.keys(grouped)) {
+        txt += `🔸 ${domainAlias}\n`;
+        txt += "────────────────\n";
+
+        grouped[domainAlias].forEach((p, idx) => {
+          txt += `${idx + 1}) ${p.title || "(제목 없음)"}\n`;
+          txt += `   📎 링크: ${p.url}\n`;
+          txt += `   🖼️ 위치: ${p.fair_trade_img_position}번째\n\n`;
+        });
+      }
 
       document.getElementById("reportContent").innerText = txt;
     }
@@ -353,13 +361,15 @@
       }
 
       try {
+        const domainList = Object.keys(fairDomainAliasMap);
+
         const response = await fetch(analyze_blog, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             blogId,
-            fairTradeImageLinks,
-            numPages: pageNum  // ✅ 사용자 입력값을 함께 보냄
+            numPages: pageNum,  // ✅ 사용자 입력값을 함께 보냄
+            fairTradeImageLinks: domainList
           })
         });
 
