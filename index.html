@@ -222,7 +222,6 @@
         let BASE_URL = isTestMode ? "http://localhost:3000" : "https://fairblog.onrender.com";
         const encodedUrl = encodeURIComponent(imageSrc);
         const proxyImageSrc = `${BASE_URL}/proxy?url=${encodedUrl}`;
-
         console.log("✅ 최종 요청 URL:", encodedUrl);
 
         // 태그 박스 목록 준비
