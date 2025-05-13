@@ -262,8 +262,7 @@
         });
 
         // ✅ 스티커 여부에 따라 이미지 URL 선택
-        const isSticker = imageSrc.toLowerCase().includes("sticker");
-        const finalImageUrl = isSticker ? proxyImageSrc : imageSrc;
+        const finalImageUrl = useFairImage ? imageSrc : proxyImageSrc;
 
         // 카드 생성
         const li = document.createElement("li");
