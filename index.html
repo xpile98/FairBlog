@@ -18,7 +18,7 @@
         <div class="flex items-center gap-1 text-sm">
           <label for="pageNum" class="text-gray-600"> </label>
 
-          <select id="pageNum" class="border rounded px-2 py-1 text-sm" onchange="updatePostCountLabel()">
+          <select id="pageNum" class="border rounded px-2 py-1 text-sm">
             <option value="1" selected>1페이지</option>
             <option value="2">2페이지</option>
             <option value="3">3페이지</option>
@@ -124,14 +124,6 @@
       fairTradeImageLinks.splice(index, 1);
       renderFairLinks();
     }
-
-    function updatePostCountLabel() {
-      const pageNum = parseInt(document.getElementById("pageNum").value || "1");
-      document.getElementById("postCountLabel").textContent = `${pageNum} 페이지`;
-    }
-
-    // ✅ 초기에도 한번 호출해서 기본 표시되도록
-    updatePostCountLabel();
 
     function showLoading() {
       document.getElementById("loadingBar").classList.remove("hidden");
