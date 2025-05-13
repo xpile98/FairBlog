@@ -12,8 +12,7 @@ app.use(express.json()); // ✅ JSON 요청 파싱
 console.log("✅ Express 앱 준비됨");
 
 app.post('/analyze_blog', async (req, res) => {
-  const { blogId, fairTradeImageLinks } = req.body;
-  const maxPages = 1;
+  const { blogId, fairTradeImageLinks, numPages = 1 } = req.body;
 
   if (!blogId || !Array.isArray(fairTradeImageLinks)) {
     return res.status(400).json({ error: "잘못된 요청입니다 (blogId 또는 링크 리스트 없음)" });
@@ -22,7 +21,7 @@ app.post('/analyze_blog', async (req, res) => {
   try {
     const allPosts = [];
 
-    for (let page = 1; page <= maxPages; page++) {
+    for (let page = numPages; page <= numPages; page++) {
       const url = `https://m.blog.naver.com/api/blogs/${blogId}/post-list?categoryNo=0&itemCount=24&page=${page}&userId=${blogId}`;
       const headers = {
         'User-Agent': 'Mozilla/5.0',
@@ -35,16 +34,30 @@ app.post('/analyze_blog', async (req, res) => {
       console.log(`📄 페이지 ${page}에서 ${items.length}건 수신됨`);
       if (items.length === 0) break;
 
-      // ✅ 병렬 분석
-      const parsePromises = items.map(item => {
-        const logNo = item.logNo;
-        const domainId = item.domainIdOrBlogId;
-        const postUrl = `https://m.blog.naver.com/${domainId}/${logNo}`;
-        return parseBlogPostContent(postUrl, fairTradeImageLinks);
-      });
+      for (let i = 0; i < items.length; i += 5) {
+        const batch = items.slice(i, i + 5);
 
-      const results = await Promise.all(parsePromises);
-      allPosts.push(...results.filter(post => post));
+        const batchPromises = batch.map(item => {
+          const logNo = item.logNo;
+          const domainId = item.domainIdOrBlogId;
+          const postUrl = `https://m.blog.naver.com/${domainId}/${logNo}`;
+          return parseBlogPostContent(postUrl, fairTradeImageLinks);
+        });
+
+        // ✅ 실패도 감지 가능하게 allSettled 사용
+        const batchResults = await Promise.allSettled(batchPromises);
+
+        for (const result of batchResults) {
+          if (result.status === "rejected" && result.reason?.code === 429) {
+            console.error("❌ 429 감지됨: 분석 중단");
+            return res.status(429).json({ error: "요청이 너무 많아 분석이 차단되었습니다. 잠시 후 다시 시도해주세요." });
+          }
+
+          if (result.status === "fulfilled" && result.value) {
+            allPosts.push(result.value);
+          }
+        }
+      }
     }
 
     res.json({ posts: allPosts });
@@ -54,6 +67,7 @@ app.post('/analyze_blog', async (req, res) => {
     res.status(500).json({ error: "블로그 분석 실패" });
   }
 });
+
 
 app.listen(PORT, () => {
   console.log(`🚀 서버 실행 중: http://localhost:${PORT}`);

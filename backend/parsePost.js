@@ -22,25 +22,29 @@ async function parseBlogPostContent(postUrl, fairTradeImageLinks) {
       return null;
     }
 
-    const images = contentDiv.find('img').toArray();
+    const images = contentDiv.find('img');
     let firstImageUrl = '';
     let fairTradeImgUrl = '';
     let fairTradeImgPosition = 0;
 
     console.log(`🔍 [${postUrl}] 이미지 수: ${images.length}`);
 
-    for (let i = 0; i < images.length; i++) {
-      const src = $(images[i]).attr('src') || '';
-      if (!src.startsWith('http')) continue;
+    images.each((i, el) => {
+      const src = $(el).attr('src') || '';
+
+      if (!src.startsWith('http')) {
+        return;
+      }
 
       if (!firstImageUrl) firstImageUrl = src;
 
       if (fairTradeImageLinks.some(domain => src.includes(domain))) {
         fairTradeImgUrl = src;
         fairTradeImgPosition = i + 1;
-        break; // ✅ 첫 공정위 이미지만 찾으면 종료
+        //console.log(`✅ 공정위 이미지 발견: ${src} (위치: ${i + 1})`);
+        return false; // break
       }
-    }
+    });
 
     const allText = contentDiv.text().replace(/\s+/g, '').trim();
     const first100Chars = allText.slice(0, 100);
@@ -56,7 +60,16 @@ async function parseBlogPostContent(postUrl, fairTradeImageLinks) {
     };
 
   } catch (error) {
-    console.error(`❌ ${postUrl} 파싱 중 오류:`, error.message);
+    const statusCode = error?.response?.status;
+
+    if (statusCode === 429) {
+      console.error(`❌ 429 감지됨: ${postUrl}`);
+      const err = new Error("RATE_LIMITED");
+      err.code = 429; // ✅ index.js에서 감지용
+      throw err;
+    }
+
+    console.error(`⚠️ ${postUrl} 파싱 실패: ${error.message}`);
     return null;
   }
 }

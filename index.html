@@ -15,6 +15,25 @@
       <label for="blogId" class="block text-sm font-medium text-gray-700">블로그 ID 입력:</label>
       <div class="flex mt-1">
         <input type="text" id="blogId" class="flex-1 border rounded px-3 py-2" placeholder="예: blogpeople" />
+        <div class="flex items-center gap-1 text-sm">
+          <label for="pageNum" class="text-gray-600"> </label>
+
+          <select id="pageNum" class="border rounded px-2 py-1 text-sm" onchange="updatePostCountLabel()">
+            <option value="1" selected>1페이지</option>
+            <option value="2">2페이지</option>
+            <option value="3">3페이지</option>
+            <option value="4">4페이지</option>
+            <option value="5">5페이지</option>
+            <option value="6">6페이지</option>
+            <option value="7">7페이지</option>
+            <option value="8">8페이지</option>
+            <option value="9">9페이지</option>
+            <option value="10">10페이지</option>
+          </select>
+
+          <span class="text-gray-600">탐색</span>
+          <!-- ✅ 선택 결과 안내 -->
+        </div>
         <button onclick="fetchBlogPosts()" class="ml-2 bg-blue-600 text-white px-4 py-2 rounded">검사 시작</button>
       </div>
     </div>
@@ -106,6 +125,14 @@
       renderFairLinks();
     }
 
+    function updatePostCountLabel() {
+      const pageNum = parseInt(document.getElementById("pageNum").value || "1");
+      document.getElementById("postCountLabel").textContent = `${pageNum} 페이지`;
+    }
+
+    // ✅ 초기에도 한번 호출해서 기본 표시되도록
+    updatePostCountLabel();
+
     function showLoading() {
       document.getElementById("loadingBar").classList.remove("hidden");
     }
@@ -116,10 +143,11 @@
     // 초기 렌더
     renderFairLinks();
 
+    /*
     async function fetchBlogPosts() {
       const blogId = document.getElementById("blogId").value.trim();
       if (!blogId) {
-        alert("블로그 ID를 입력해주세요.");
+        alert("블로그 ID를 입력해주세요.1");
         return;
       }
 
@@ -175,6 +203,7 @@
         hideLoading();
       }
     }
+    */
 
     function updateProgress(current, total) {
       const percent = (current / total) * 100;
@@ -228,7 +257,7 @@
         // DOM으로 각각의 span 요소 생성해서 p에 붙이기
         const tagContainer = document.createElement("p");
         tagContainer.className = "mt-2 flex flex-wrap gap-2";
-        
+
         const tagTextsForFilter = []; // 필터링용 문자열 모음
 
         tagList.forEach(tag => {
@@ -314,8 +343,10 @@
 
     async function fetchBlogPosts() {
       const blogId = document.getElementById("blogId").value.trim();
+      const pageNum = parseInt(document.getElementById("pageNum").value || "1");
+
       if (!blogId) {
-        alert("블로그 ID를 입력해주세요.");
+        alert("블로그 ID를 입력해주세요.2");
         return;
       }
 
@@ -333,11 +364,17 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             blogId,
-            fairTradeImageLinks
+            fairTradeImageLinks,
+            numPages: pageNum  // ✅ 사용자 입력값을 함께 보냄
           })
         });
 
         if (!response.ok) throw new Error("네트워크 오류");
+      
+        if (response.status === 429) {
+          alert("❗ 요청이 너무 많아 분석이 일시적으로 차단되었습니다.\n잠시 후 다시 시도해주세요.");
+          return;
+        }
 
         const data = await response.json();
         renderPosts(data.posts);
@@ -350,7 +387,6 @@
         hideLoading(); // ✅ 항상 숨김
       }
     }
-
 
   </script>
 </body>
