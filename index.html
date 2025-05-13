@@ -23,6 +23,17 @@
       <div class="bg-blue-600 h-full transition-all" style="width: 0%;"></div>
     </div>
 
+    <div id="tagFilter" class="mb-4 flex flex-wrap gap-2">
+      <button onclick="filterByTag('전체')" class="px-3 py-1 bg-gray-300 rounded">전체</button>
+      <button onclick="filterByTag('공정위 이미지 있음')" class="px-3 py-1 bg-gray-300 rounded">공정위 이미지 있음</button>
+      <button onclick="filterByTag('공정위 이미지 없음')" class="px-3 py-1 bg-gray-300 rounded">공정위 이미지 없음</button>
+      <button onclick="filterByTag('상단 배치')" class="px-3 py-1 bg-gray-300 rounded">상단 배치</button>
+      <button onclick="filterByTag('하단 배치')" class="px-3 py-1 bg-gray-300 rounded">하단 배치</button>
+      <button onclick="filterByTag('스티커 있음')" class="px-3 py-1 bg-gray-300 rounded">스티커 있음</button>
+      <button onclick="filterByTag('스티커 없음')" class="px-3 py-1 bg-gray-300 rounded">스티커 없음</button>
+    </div>
+
+
     <!-- 결과 표시 -->
     <ul id="postList" class="space-y-4"></ul>
     <section class="mt-8">
@@ -171,7 +182,6 @@
       document.getElementById("loadingBar").firstElementChild.style.width = `${percent}%`;
     }
 
-
     // 포스트 렌더링
     function renderPosts(posts) {
       const list = document.getElementById("postList");
@@ -182,17 +192,54 @@
         const isSuspicious = hasFair && post.fair_trade_img_position !== 1;
         const useFairImage = post.fair_trade_img_url && post.fair_trade_img_position === 1;
         const imageSrc = useFairImage ? post.fair_trade_img_url : post.first_image_url;
-        const BASE_URL = location.hostname === "localhost" ? "http://localhost:3000" : "https://fairblog.onrender.com";
-        const proxyImageSrc = `${BASE_URL}/proxy?url=${encodeURIComponent(imageSrc)}`;
-        // 상태 태그 구성
-        let tag = '';
-        if (hasFair && post.fair_trade_img_position === 1) {
-          tag = `<span class="inline-block text-green-700 bg-green-100 text-sm px-2 py-1 rounded">✅ 공정위 이미지 (정상)</span>`;
-        } else if (hasFair && post.fair_trade_img_position !== 1) {
-          tag = `<span class="inline-block text-red-700 bg-red-100 text-sm px-2 py-1 rounded">❗ 공정위 이미지 있음, 첫 번째 아님</span>`;
+
+        let BASE_URL = "";
+        if (isTestMode) {
+          BASE_URL = "http://localhost:3000"; // 로컬 서버 주소
         } else {
-          tag = `<span class="inline-block text-gray-600 bg-gray-100 text-sm px-2 py-1 rounded">공정위 이미지 없음</span>`;
+          BASE_URL = "https://fairblog.onrender.com"; // 배포 서버 주소
         }
+        //const fixedImageSrc = getSafeImageUrl(imageSrc);
+        const encodedUrl = encodeURIComponent(imageSrc);
+        const proxyImageSrc = `${BASE_URL}/proxy?url=${encodedUrl}`;
+        console.log("✅ 최종 요청 URL:", encodedUrl);
+
+        // 태그 박스 목록 준비
+        const tagList = [];
+
+        if (hasFair) {
+          tagList.push({ text: "✅ 공정위 이미지 있음", class: "text-green-700 bg-green-100" });
+
+          if (post.fair_trade_img_position === 1) {
+            tagList.push({ text: "📌 상단 배치", class: "text-blue-700 bg-blue-100" });
+          } else {
+            tagList.push({ text: "❗ 하단 배치", class: "text-red-700 bg-red-100" });
+          }
+        } else {
+          tagList.push({ text: "🚫 공정위 이미지 없음", class: "text-gray-700 bg-gray-100" });
+        }
+
+        if (post.first_image_url?.includes("sticker")) {
+          tagList.push({ text: "🏷️ 스티커 있음", class: "text-yellow-700 bg-yellow-100" });
+        } else {
+          tagList.push({ text: "스티커 없음", class: "text-gray-500 bg-gray-100" });
+        }
+
+        // DOM으로 각각의 span 요소 생성해서 p에 붙이기
+        const tagContainer = document.createElement("p");
+        tagContainer.className = "mt-2 flex flex-wrap gap-2";
+        
+        const tagTextsForFilter = []; // 필터링용 문자열 모음
+
+        tagList.forEach(tag => {
+          const span = document.createElement("span");
+          span.className = `inline-block text-sm px-2 py-1 rounded ${tag.class}`;
+          span.textContent = tag.text;
+          tagContainer.appendChild(span);
+
+          const plainText = tag.text.replace(/^[^가-힣a-zA-Z]+/, '').trim(); 
+          tagTextsForFilter.push(plainText);
+        });
 
         // 카드 생성
         const li = document.createElement("li");
@@ -208,14 +255,16 @@
               onerror="this.style.display='none'"
             />
             <div class="flex-1">
-              <h2 class="text-lg font-semibold"><a href="${post.url}" target="_blank" class="hover:underline">${post.title}</a></h2>
+              <h2 class="text-lg font-semibold"><a href="${post.url}" target="_blank">${post.title}</a></h2>
               <p class="text-sm text-gray-500">${post.date}</p>
               ${!hasFair ? `<p class="text-sm mt-1 text-gray-700">${post.first_100_chars}</p>` : ''}
-              <p class="mt-2">${tag}</p>
             </div>
           </div>
         `;
-
+        
+        // li 안의 .flex-1 영역에 tagContainer 추가
+        li.querySelector(".flex-1").appendChild(tagContainer);
+        li.setAttribute("data-tags", tagTextsForFilter.join(" "));
         list.appendChild(li);
       });
     }
@@ -247,6 +296,21 @@
       a.download = "fairblog_report.txt";
       a.click();
     }
+
+    function filterByTag(tag) {
+      const posts = document.querySelectorAll("#postList li");
+
+      posts.forEach(li => {
+        const tags = li.getAttribute("data-tags") || "";
+
+        if (tag === "전체" || tags.includes(tag)) {
+          li.style.display = "block";
+        } else {
+          li.style.display = "none";
+        }
+      });
+    }
+
 
     async function fetchBlogPosts() {
       const blogId = document.getElementById("blogId").value.trim();
