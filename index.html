@@ -291,7 +291,6 @@
       });
     }
 
-
     async function fetchBlogPosts() {
       const blogId = document.getElementById("blogId").value.trim();
       const pageNum = parseInt(document.getElementById("pageNum").value || "1");
@@ -305,52 +304,56 @@
       const loadingText = document.getElementById("loadingText");
       const domainList = Object.keys(fairDomainAliasMap);
       const BASE_URL = isTestMode ? "http://localhost:3000" : "https://fairblog.onrender.com";
+      const analyzeSingleUrl = `${BASE_URL}/analyze_single`;
+      const postListUrl = `${BASE_URL}/get_post_list`;
 
       try {
-        // 📥 1단계: 서버에 목록 요청
+        // 📥 1단계: 서버에서 포스트 리스트 받아오기
         loadingText.textContent = "📥 블로그 글 목록 불러오는 중...";
-        const postListRes = await fetch(`${BASE_URL}/get_post_list`, {
+        const res = await fetch(postListUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ blogId, pageNum })
         });
 
-        if (!postListRes.ok) throw new Error("네이버 블로그 목록 요청 실패");
-        const postData = await postListRes.json();
-        const items = postData.items || [];
+        if (!res.ok) throw new Error("네이버 블로그 목록 요청 실패");
+        const data = await res.json();
+        const items = data.items || [];
 
         if (items.length === 0) {
           alert("📭 게시글이 없습니다.");
           return;
         }
 
-        // 🔁 2단계: 개별 포스트 분석 요청
+        const urls = items.map(item =>
+          `https://m.blog.naver.com/${item.domainIdOrBlogId}/${item.logNo}`
+        );
+
+        // 🔁 2단계: n개씩 병렬 분석
         const allPosts = [];
-        loadingText.textContent = `🔍 총 ${items.length}개 포스트 분석 중...`;
+        const batchSize = 6;
 
-        for (let i = 0; i < items.length; i++) {
-          const item = items[i];
-          const postUrl = `https://m.blog.naver.com/${item.domainIdOrBlogId}/${item.logNo}`;
+        for (let i = 0; i < urls.length; i += batchSize) {
+          const batch = urls.slice(i, i + batchSize);
 
-          const res = await fetch(`${BASE_URL}/analyze_single`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              postUrl,
-              fairTradeImageLinks: domainList
+          const promises = batch.map(postUrl =>
+            fetch(analyzeSingleUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                postUrl,
+                fairTradeImageLinks: domainList
+              })
             })
-          });
+            .then(r => r.ok ? r.json() : null)
+            .catch(() => null)
+          );
 
-          if (!res.ok) {
-            console.warn(`⚠️ 분석 실패 (${i + 1}/${items.length})`);
-            continue;
-          }
+          const results = await Promise.all(promises);
+          results.forEach(p => { if (p) allPosts.push(p); });
 
-          const parsed = await res.json();
-          allPosts.push(parsed);
-
-          updateProgress(i + 1, items.length);
-          loadingText.textContent = `⏳ ${i + 1} / ${items.length} 포스트 분석 중...`;
+          updateProgress(Math.min(i + batch.length, urls.length), urls.length);
+          loadingText.textContent = `⏳ ${Math.min(i + batch.length, urls.length)} / ${urls.length} 포스트 분석 중...`;
         }
 
         // 🟢 3단계: 결과 렌더링
@@ -365,8 +368,6 @@
         hideLoading();
       }
     }
-
-
   </script>
 </body>
 </html>
