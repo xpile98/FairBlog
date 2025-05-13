@@ -105,6 +105,9 @@ app.post('/analyze_blog_meta', async (req, res) => {
 app.post('/get_post_list', async (req, res) => {
   const { blogId, pageNum = 1 } = req.body;
 
+  // ✅ 여기에 로그 추가!
+  console.log(`📥 [post-list 요청] blogId=${blogId}, pageNum=${pageNum}`);
+  
   if (!blogId) {
     return res.status(400).json({ error: "블로그 ID가 없습니다" });
   }

@@ -221,7 +221,7 @@
         let BASE_URL = isTestMode ? "http://localhost:3000" : "https://fairblog.onrender.com";
         const encodedUrl = encodeURIComponent(imageSrc);
         const proxyImageSrc = `${BASE_URL}/proxy?url=${encodedUrl}`;
-        console.log("✅ 최종 요청 URL:", encodedUrl);
+        // console.log("✅ 최종 요청 URL:", encodedUrl);
 
         // 태그 박스 목록 준비
         const tagList = [];
@@ -534,8 +534,8 @@
         const token = await user.getIdTokenResult();
         isAdmin = !!token.claims.admin;
 
-        console.log("✅ 로그인됨:", user.email);
-        console.log("🛡 isAdmin:", isAdmin);
+        //console.log("✅ 로그인됨:", user.email);
+        //console.log("🛡 isAdmin:", isAdmin);
 
         // ✅ 로그인 시 로그인 버튼 숨김, 로그아웃 버튼 표시
         loginBtn.classList.add("hidden");

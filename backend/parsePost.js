@@ -27,7 +27,7 @@ async function parseBlogPostContent(postUrl, fairTradeImageLinks) {
     let fairTradeImgUrl = '';
     let fairTradeImgPosition = 0;
 
-    console.log(`🔍 [${postUrl}] 이미지 수: ${images.length}`);
+    //console.log(`🔍 [${postUrl}] 이미지 수: ${images.length}`);
 
     images.each((i, el) => {
       const src = $(el).attr('src') || '';
