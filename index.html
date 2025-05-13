@@ -213,16 +213,16 @@
         const isSuspicious = hasFair && post.fair_trade_img_position !== 1;
         const useFairImage = post.fair_trade_img_url && post.fair_trade_img_position === 1;
         const imageSrc = useFairImage ? post.fair_trade_img_url : post.first_image_url;
-
-        let BASE_URL = "";
-        if (isTestMode) {
-          BASE_URL = "http://localhost:3000"; // 로컬 서버 주소
-        } else {
-          BASE_URL = "https://fairblog.onrender.com"; // 배포 서버 주소
+        
+        // ✅ 강남맛집.net 포함 시 무조건 고정 URL로 대체
+        if (imageSrc.includes("강남맛집.net")) {
+          imageSrc = "https://xn--939au0g4vj8sq.net/_sp/wgs.php?ctf=MzE4MDI0fDE3NDEzNDd8YWRtXzI5MzI4Nnw4NjgxMXwyMDI1MDUxNg==";
         }
-        //const fixedImageSrc = getSafeImageUrl(imageSrc);
+
+        let BASE_URL = isTestMode ? "http://localhost:3000" : "https://fairblog.onrender.com";
         const encodedUrl = encodeURIComponent(imageSrc);
         const proxyImageSrc = `${BASE_URL}/proxy?url=${encodedUrl}`;
+        
         console.log("✅ 최종 요청 URL:", encodedUrl);
 
         // 태그 박스 목록 준비
