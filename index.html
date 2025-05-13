@@ -38,12 +38,12 @@
       </div>
     </div>
 
-    <div id="loadingText" class="mt-2 text-sm text-blue-700 hidden">🔄 블로그 분석 중입니다. 잠시만 기다려주세요...</div>
-    <div id="loadingBar" class="w-full bg-gray-200 h-2 mt-4 rounded overflow-hidden hidden">
+    <div id="loadingText" class="mt-2 text-sm text-blue-700 hidden">분석 대기 중...</div>
+    <div id="loadingBar" class="w-full bg-gray-200 h-2 mt-4 mb-6 rounded overflow-hidden hidden">
       <div class="bg-blue-600 h-full transition-all" style="width: 0%;"></div>
     </div>
 
-    <div id="tagFilter" class="mb-4 flex flex-wrap gap-2">
+    <div id="tagFilter" class="mt-6 mb-4 flex flex-wrap gap-2">
       <button onclick="filterByTag('전체')" class="px-3 py-1 bg-gray-300 rounded">전체</button>
       <button onclick="filterByTag('공정위 이미지 있음')" class="px-3 py-1 bg-gray-300 rounded">공정위 이미지 있음</button>
       <button onclick="filterByTag('공정위 이미지 없음')" class="px-3 py-1 bg-gray-300 rounded">공정위 이미지 없음</button>
@@ -83,7 +83,7 @@
       modeLabel.classList.remove("bg-gray-500");
       modeLabel.classList.add("bg-yellow-600");
     } else {
-      modeLabel.textContent = "✅ 최종 빌드 (20250513_1443)";
+      modeLabel.textContent = "✅ 최종 빌드 (20250513_1650)";
       modeLabel.classList.remove("bg-gray-500");
       modeLabel.classList.add("bg-green-700");
     }
@@ -132,6 +132,7 @@
       document.getElementById("loadingBar").classList.remove("hidden");
       document.getElementById("loadingText").classList.remove("hidden");
     }
+
     function hideLoading() {
       document.getElementById("loadingBar").classList.add("hidden");
       document.getElementById("loadingText").classList.add("hidden");
@@ -296,56 +297,75 @@
       const pageNum = parseInt(document.getElementById("pageNum").value || "1");
 
       if (!blogId) {
-        alert("블로그 ID를 입력해주세요.2");
+        alert("블로그 ID를 입력해주세요.");
         return;
       }
-        
-      const startButton = document.querySelector('button[onclick="fetchBlogPosts()"]');
-      startButton.disabled = true;
-      startButton.textContent = "⏳ 검사 중...";
-      
-      showLoading(); // ✅ 시작 시 표시
 
-      if (isTestMode) {
-        analyze_blog = "http://localhost:3000/analyze_blog";
-      } else {
-        analyze_blog = "https://fairblog.onrender.com/analyze_blog";
-      }
+      showLoading();
+      const loadingText = document.getElementById("loadingText");
+      const domainList = Object.keys(fairDomainAliasMap);
+      const BASE_URL = isTestMode ? "http://localhost:3000" : "https://fairblog.onrender.com";
 
       try {
-
-        const domainList = Object.keys(fairDomainAliasMap);
-
-        const response = await fetch(analyze_blog, {
+        // 📥 1단계: 서버에 목록 요청
+        loadingText.textContent = "📥 블로그 글 목록 불러오는 중...";
+        const postListRes = await fetch(`${BASE_URL}/get_post_list`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            blogId,
-            numPages: pageNum,  // ✅ 사용자 입력값을 함께 보냄
-            fairTradeImageLinks: domainList
-          })
+          body: JSON.stringify({ blogId, pageNum })
         });
 
-        if (!response.ok) throw new Error("네트워크 오류");
-      
-        if (response.status === 429) {
-          alert("❗ 요청이 너무 많아 분석이 일시적으로 차단되었습니다.\n잠시 후 다시 시도해주세요.");
+        if (!postListRes.ok) throw new Error("네이버 블로그 목록 요청 실패");
+        const postData = await postListRes.json();
+        const items = postData.items || [];
+
+        if (items.length === 0) {
+          alert("📭 게시글이 없습니다.");
           return;
         }
 
-        const data = await response.json();
-        renderPosts(data.posts);
-        renderTxt(data.posts);
+        // 🔁 2단계: 개별 포스트 분석 요청
+        const allPosts = [];
+        loadingText.textContent = `🔍 총 ${items.length}개 포스트 분석 중...`;
+
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i];
+          const postUrl = `https://m.blog.naver.com/${item.domainIdOrBlogId}/${item.logNo}`;
+
+          const res = await fetch(`${BASE_URL}/analyze_single`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              postUrl,
+              fairTradeImageLinks: domainList
+            })
+          });
+
+          if (!res.ok) {
+            console.warn(`⚠️ 분석 실패 (${i + 1}/${items.length})`);
+            continue;
+          }
+
+          const parsed = await res.json();
+          allPosts.push(parsed);
+
+          updateProgress(i + 1, items.length);
+          loadingText.textContent = `⏳ ${i + 1} / ${items.length} 포스트 분석 중...`;
+        }
+
+        // 🟢 3단계: 결과 렌더링
+        renderPosts(allPosts);
+        renderTxt(allPosts);
+        loadingText.textContent = `✅ 분석 완료! 총 ${allPosts.length}건`;
 
       } catch (err) {
         console.error("분석 오류:", err);
-        alert("분석 중 오류가 발생했습니다.");
+        alert("⚠️ 블로그 분석 중 오류가 발생했습니다.");
       } finally {
-        hideLoading(); // ✅ 항상 숨김
-        startButton.disabled = false;
-        startButton.textContent = "검사 시작";
+        hideLoading();
       }
     }
+
 
   </script>
 </body>

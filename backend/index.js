@@ -65,9 +65,66 @@ app.post('/analyze_blog', async (req, res) => {
   }
 });
 
+// 게시글 메타만 가져오는 API
+app.post('/analyze_blog_meta', async (req, res) => {
+  const { blogId, numPages = 1 } = req.body;
 
-app.listen(PORT, () => {
-  console.log(`🚀 서버 실행 중: http://localhost:${PORT}`);
+  if (!blogId) {
+    return res.status(400).json({ error: "blogId가 없습니다" });
+  }
+
+  try {
+    const allItems = [];
+    for (let page = 1; page <= numPages; page++) {
+      const url = `https://m.blog.naver.com/api/blogs/${blogId}/post-list?categoryNo=0&itemCount=24&page=${page}&userId=${blogId}`;
+      const headers = {
+        'User-Agent': 'Mozilla/5.0',
+        'Accept': 'application/json',
+        'Referer': `https://m.blog.naver.com/${blogId}`
+      };
+
+      const response = await axios.get(url, { headers });
+      const items = response.data.result?.items || [];
+      if (items.length === 0) break;
+
+      allItems.push(...items.map(item => ({
+        logNo: item.logNo,
+        domainId: item.domainIdOrBlogId
+      })));
+    }
+
+    res.json({ items: allItems });
+
+  } catch (err) {
+    console.error("메타 로딩 실패:", err.message);
+    res.status(500).json({ error: "메타 요청 실패" });
+  }
+});
+
+
+app.post('/get_post_list', async (req, res) => {
+  const { blogId, pageNum = 1 } = req.body;
+
+  if (!blogId) {
+    return res.status(400).json({ error: "블로그 ID가 없습니다" });
+  }
+
+  try {
+    const url = `https://m.blog.naver.com/api/blogs/${blogId}/post-list?categoryNo=0&itemCount=24&page=${pageNum}&userId=${blogId}`;
+    const headers = {
+      'User-Agent': 'Mozilla/5.0',
+      'Accept': 'application/json',
+      'Referer': `https://m.blog.naver.com/${blogId}`
+    };
+
+    const response = await axios.get(url, { headers });
+    const items = response.data.result?.items || [];
+
+    res.json({ items });
+  } catch (err) {
+    console.error("🛑 목록 가져오기 실패:", err.message);
+    res.status(500).json({ error: "블로그 목록 가져오기 실패" });
+  }
 });
 
 // Express 서버에 추가
@@ -105,4 +162,8 @@ app.post('/analyze_single', async (req, res) => {
     console.error("단일 분석 실패:", err.message);
     res.status(500).json({ error: "단일 포스트 분석 실패" });
   }
+});
+
+app.listen(PORT, () => {
+  console.log(`🚀 서버 실행 중: http://localhost:${PORT}`);
 });
