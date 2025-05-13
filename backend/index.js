@@ -76,3 +76,21 @@ app.get('/proxy', async (req, res) => {
     res.status(500).send('프록시 실패');
   }
 });
+
+// 하나의 포스트 URL을 분석하는 API
+app.post('/analyze_single', async (req, res) => {
+  const { postUrl, fairTradeImageLinks } = req.body;
+
+  if (!postUrl || !Array.isArray(fairTradeImageLinks)) {
+    return res.status(400).json({ error: "잘못된 요청입니다 (postUrl 또는 링크 없음)" });
+  }
+
+  try {
+    const parsed = await parseBlogPostContent(postUrl, fairTradeImageLinks);
+    if (!parsed) return res.status(204).send(); // 파싱 실패 시 응답 없음
+    res.json(parsed);
+  } catch (err) {
+    console.error("단일 분석 실패:", err.message);
+    res.status(500).json({ error: "단일 포스트 분석 실패" });
+  }
+});
