@@ -22,35 +22,25 @@ async function parseBlogPostContent(postUrl, fairTradeImageLinks) {
       return null;
     }
 
-    const images = contentDiv.find('img');
+    const images = contentDiv.find('img').toArray();
     let firstImageUrl = '';
     let fairTradeImgUrl = '';
     let fairTradeImgPosition = 0;
 
     console.log(`🔍 [${postUrl}] 이미지 수: ${images.length}`);
 
-    images.each((i, el) => {
-        // ✅ 원본 그대로 사용 (이제 decode 안 함!)
-        const src = $(el).attr('src') || '';
+    for (let i = 0; i < images.length; i++) {
+      const src = $(images[i]).attr('src') || '';
+      if (!src.startsWith('http')) continue;
 
-        if (!src.startsWith('http')) {
-            console.log(`[무시됨 ${i + 1}] src 없음 또는 http 아님:`, src);
-            return;
-        }
+      if (!firstImageUrl) firstImageUrl = src;
 
-        console.log(`[이미지 ${i + 1}]`, src);
-
-        // ✅ 첫 유효한 이미지 무조건 등록 (스티커 포함)
-        if (!firstImageUrl) firstImageUrl = src;
-
-        // ✅ 공정위 이미지도 무조건 검출
-        if (fairTradeImageLinks.some(domain => src.includes(domain))) {
-            fairTradeImgUrl = src;
-            fairTradeImgPosition = i + 1;
-            console.log(`✅ 공정위 이미지 발견: ${src} (위치: ${i + 1})`);
-            return false; // break
-        }
-    });
+      if (fairTradeImageLinks.some(domain => src.includes(domain))) {
+        fairTradeImgUrl = src;
+        fairTradeImgPosition = i + 1;
+        break; // ✅ 첫 공정위 이미지만 찾으면 종료
+      }
+    }
 
     const allText = contentDiv.text().replace(/\s+/g, '').trim();
     const first100Chars = allText.slice(0, 100);

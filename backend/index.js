@@ -11,10 +11,8 @@ app.use(express.json()); // ✅ JSON 요청 파싱
 
 console.log("✅ Express 앱 준비됨");
 
-// POST 방식으로 blogId + 공정위 도메인 리스트 수신
 app.post('/analyze_blog', async (req, res) => {
   const { blogId, fairTradeImageLinks } = req.body;
-  const allPosts = [];
   const maxPages = 1;
 
   if (!blogId || !Array.isArray(fairTradeImageLinks)) {
@@ -22,6 +20,8 @@ app.post('/analyze_blog', async (req, res) => {
   }
 
   try {
+    const allPosts = [];
+
     for (let page = 1; page <= maxPages; page++) {
       const url = `https://m.blog.naver.com/api/blogs/${blogId}/post-list?categoryNo=0&itemCount=24&page=${page}&userId=${blogId}`;
       const headers = {
@@ -33,17 +33,18 @@ app.post('/analyze_blog', async (req, res) => {
       const response = await axios.get(url, { headers });
       const items = response.data.result?.items || [];
       console.log(`📄 페이지 ${page}에서 ${items.length}건 수신됨`);
-
       if (items.length === 0) break;
 
-      for (const item of items) {
+      // ✅ 병렬 분석
+      const parsePromises = items.map(item => {
         const logNo = item.logNo;
         const domainId = item.domainIdOrBlogId;
         const postUrl = `https://m.blog.naver.com/${domainId}/${logNo}`;
+        return parseBlogPostContent(postUrl, fairTradeImageLinks);
+      });
 
-        const parsed = await parseBlogPostContent(postUrl, fairTradeImageLinks);
-        if (parsed) allPosts.push(parsed);
-      }
+      const results = await Promise.all(parsePromises);
+      allPosts.push(...results.filter(post => post));
     }
 
     res.json({ posts: allPosts });
