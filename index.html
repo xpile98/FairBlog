@@ -40,7 +40,7 @@
             <option value="10">10페이지</option>
           </select>
 
-          <span class="text-gray-600">탐색</span>
+          <span class="text-gray-600">  </span>
           <!-- ✅ 선택 결과 안내 -->
         </div>
         <button onclick="fetchBlogPosts()" class="bg-blue-600 text-white px-4 py-2 rounded whitespace-nowrap hover:bg-blue-700 transition text-sm">검사 시작</button>
@@ -89,13 +89,14 @@
     </div>
 
 
-    <!-- ✅ 항상 보이게 -->
-    <button onclick="toggleGuestbook()" class="fixed bottom-4 right-4 bg-blue-600 text-white px-3 py-2 rounded shadow-md z-50">
+    <!-- 토글 버튼 -->
+    <button onclick="toggleGuestbook()"
+      class="fixed bottom-4 right-4 z-50 bg-blue-600 text-white px-3 py-2 rounded">
       💬 방명록
     </button>
 
     <!-- ✅ 모바일: hidden, PC: block -->
-    <div id="guestbook" class="hidden sm:block fixed top-20 right-4 w-72 bg-white border rounded shadow-lg p-4 z-40 text-sm">
+    <div id="guestbook" class="hidden fixed top-20 right-4 w-72 bg-white border rounded shadow-lg p-4 z-50 text-sm">
       <h3 class="text-lg font-bold mb-2">📓 방명록</h3>
       <form id="guestbookForm" class="mb-2">
         <input id="nickname" type="text" placeholder="닉네임" class="w-full mb-1 px-2 py-1 border rounded" />
@@ -167,11 +168,7 @@
       }
       return "기타/알 수 없음";
     }
-    
-    function toggleGuestbook() {
-      const guestbook = document.getElementById("guestbook");
-      guestbook.classList.toggle("hidden");
-    }
+
     function renderFairLinks() {
       const list = document.getElementById("fairLinkList");
       list.innerHTML = "";
@@ -477,6 +474,13 @@
       measurementId: "G-HNBS1KD7JX"
     };
 
+    window.toggleGuestbook = function () {
+      const guestbook = document.getElementById("guestbook");
+      console.log("토글 전:", guestbook.className);
+      guestbook.classList.toggle("hidden");
+      console.log("토글 후:", guestbook.className);
+    };
+
     // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const analytics = getAnalytics(app)
@@ -663,23 +667,6 @@
       }
     });
 
-    // ✅ 실시간 메시지 표시
-    const q = query(
-      collection(db, "guestbook"),
-      orderBy("timestamp", "desc"),
-      limit(20)
-    );
-
-    onSnapshot(q, (snapshot) => {
-      list.innerHTML = "";
-      snapshot.forEach((doc) => {
-        const data = doc.data();
-        const li = document.createElement("li");
-        li.textContent = `🗣 ${data.nickname}: ${data.message}`;
-        list.appendChild(li);
-      });
-    });
-
     window.addEventListener("DOMContentLoaded", () => {
       const nicknameInput = document.getElementById("nickname");
       if (!nicknameInput.value) {
@@ -689,6 +676,8 @@
       const guestbook = document.getElementById("guestbook");
       if (window.innerWidth < 640) {
         guestbook.classList.add("hidden");
+      } else {
+        guestbook.classList.remove("hidden");
       }
     });
   </script>
