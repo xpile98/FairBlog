@@ -8,7 +8,7 @@
 </head>
 <body class="bg-gray-100 text-gray-800 p-6">
   <div class="max-w-4xl mx-auto">
-    <h1 class="text-2xl font-bold mb-4">📝 공정위 블로그 검사기</h1>
+    <h1 class="text-2xl font-bold mb-4">📝 공정위 문구 검사기</h1>
     
     <!-- 블로그 ID 입력 -->
     <div class="mb-6">
@@ -38,6 +38,7 @@
       </div>
     </div>
 
+    <div id="loadingText" class="mt-2 text-sm text-blue-700 hidden">🔄 블로그 분석 중입니다. 잠시만 기다려주세요...</div>
     <div id="loadingBar" class="w-full bg-gray-200 h-2 mt-4 rounded overflow-hidden hidden">
       <div class="bg-blue-600 h-full transition-all" style="width: 0%;"></div>
     </div>
@@ -129,75 +130,15 @@
 
     function showLoading() {
       document.getElementById("loadingBar").classList.remove("hidden");
+      document.getElementById("loadingText").classList.remove("hidden");
     }
     function hideLoading() {
       document.getElementById("loadingBar").classList.add("hidden");
+      document.getElementById("loadingText").classList.add("hidden");
     }
 
     // 초기 렌더
     renderFairLinks();
-
-    /*
-    async function fetchBlogPosts() {
-      const blogId = document.getElementById("blogId").value.trim();
-      if (!blogId) {
-        alert("블로그 ID를 입력해주세요.1");
-        return;
-      }
-
-      showLoading();
-      try {
-        const postListRes = await fetch(`https://m.blog.naver.com/api/blogs/${blogId}/post-list?categoryNo=0&itemCount=24&page=1&userId=${blogId}`, {
-          headers: {
-            'User-Agent': 'Mozilla/5.0',
-            'Accept': 'application/json',
-            'Referer': `https://m.blog.naver.com/${blogId}`
-          }
-        });
-
-        const postData = await postListRes.json();
-        const items = postData.result?.items || [];
-
-        const allPosts = [];
-        for (let i = 0; i < items.length; i++) {
-          const item = items[i];
-          const postUrl = `https://m.blog.naver.com/${item.domainIdOrBlogId}/${item.logNo}`;
-
-
-          if (isTestMode) {
-            analyze_single = "http://localhost:3000/analyze_single";
-          } else {
-            analyze_single = "https://fairblog.onrender.com/analyze_single";
-          }
-
-          const res = await fetch(analyze_single, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              postUrl,
-              fairTradeImageLinks
-            })
-          });
-
-          if (res.ok) {
-            const parsed = await res.json();
-            allPosts.push(parsed);
-          }
-
-          // 프로그레스바 업데이트
-          updateProgress(i + 1, items.length);
-        }
-
-        renderPosts(allPosts);
-        renderTxt(allPosts);
-      } catch (err) {
-        console.error("전체 분석 실패:", err);
-        alert("블로그 분석 중 오류가 발생했습니다.");
-      } finally {
-        hideLoading();
-      }
-    }
-    */
 
     function updateProgress(current, total) {
       const percent = (current / total) * 100;
@@ -358,7 +299,11 @@
         alert("블로그 ID를 입력해주세요.2");
         return;
       }
-
+        
+      const startButton = document.querySelector('button[onclick="fetchBlogPosts()"]');
+      startButton.disabled = true;
+      startButton.textContent = "⏳ 검사 중...";
+      
       showLoading(); // ✅ 시작 시 표시
 
       if (isTestMode) {
@@ -368,6 +313,7 @@
       }
 
       try {
+
         const domainList = Object.keys(fairDomainAliasMap);
 
         const response = await fetch(analyze_blog, {
@@ -396,6 +342,8 @@
         alert("분석 중 오류가 발생했습니다.");
       } finally {
         hideLoading(); // ✅ 항상 숨김
+        startButton.disabled = false;
+        startButton.textContent = "검사 시작";
       }
     }
 
