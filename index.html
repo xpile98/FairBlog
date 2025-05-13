@@ -261,6 +261,10 @@
           tagTextsForFilter.push(plainText);
         });
 
+        // ✅ 스티커 여부에 따라 이미지 URL 선택
+        const isSticker = imageSrc.toLowerCase().includes("sticker");
+        const finalImageUrl = isSticker ? proxyImageSrc : imageSrc;
+
         // 카드 생성
         const li = document.createElement("li");
         li.className = "border rounded-md p-4 mb-4 bg-white shadow-sm";
@@ -268,7 +272,7 @@
         li.innerHTML = `
           <div class="flex gap-4 items-start">
             <img
-              src="${proxyImageSrc}"
+              src="${finalImageUrl}"
               alt="썸네일"
               class="w-24 h-24 sm:w-32 sm:h-32 object-cover bg-gray-100 border rounded-md"
               style="user-select: none;"
