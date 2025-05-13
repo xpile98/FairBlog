@@ -23,7 +23,7 @@
     <div class="mb-6">
       <label for="blogId" class="block text-sm font-medium text-gray-700">블로그 ID 입력:</label>
       <div class="flex mt-1">
-        <input type="text" id="blogId" class="flex-1 border rounded px-3 py-2" placeholder="예: blogpeople" />
+        <input type="text" id="blogId" class="flex-1 min-w-[120px] px-3 py-2 border rounded text-sm" placeholder="예: blogpeople" />
         <div class="flex items-center gap-1 text-sm">
           <label for="pageNum" class="text-gray-600"> </label>
 
@@ -43,7 +43,7 @@
           <span class="text-gray-600">탐색</span>
           <!-- ✅ 선택 결과 안내 -->
         </div>
-        <button onclick="fetchBlogPosts()" class="ml-2 bg-blue-600 text-white px-4 py-2 rounded">검사 시작</button>
+        <button onclick="fetchBlogPosts()" class="bg-blue-600 text-white px-4 py-2 rounded whitespace-nowrap hover:bg-blue-700 transition text-sm">검사 시작</button>
       </div>
     </div>
 
@@ -78,8 +78,50 @@
     </section>
 
     <!-- 테스트/운영 모드 상태 표시 -->
-    <div id="buildModeLabel" class="fixed bottom-2 right-2 text-xs text-white bg-gray-500 px-2 py-1 rounded opacity-70 z-50">
+    <div id="buildModeLabel" class="fixed bottom-2 left-2 text-xs text-white bg-gray-500 px-2 py-1 rounded opacity-70 z-50">
       모드 표시 중...
+    </div>
+    
+    <!-- 우측 상단 고정 로그인/로그아웃 버튼 -->
+    <div id="adminAuth" class="fixed top-2 right-2 z-50 space-x-2">
+      <button id="loginBtn" class="text-xs bg-gray-800 text-white px-2 py-1 rounded">🔐 로그인</button>
+      <button id="logoutBtn" class="hidden text-xs bg-gray-600 text-white px-2 py-1 rounded">🚪 로그아웃</button>
+    </div>
+
+
+    <!-- ✅ 항상 보이게 -->
+    <button onclick="toggleGuestbook()" class="fixed bottom-4 right-4 bg-blue-600 text-white px-3 py-2 rounded shadow-md z-50">
+      💬 방명록
+    </button>
+
+    <!-- ✅ 모바일: hidden, PC: block -->
+    <div id="guestbook" class="hidden sm:block fixed top-20 right-4 w-72 bg-white border rounded shadow-lg p-4 z-40 text-sm">
+      <h3 class="text-lg font-bold mb-2">📓 방명록</h3>
+      <form id="guestbookForm" class="mb-2">
+        <input id="nickname" type="text" placeholder="닉네임" class="w-full mb-1 px-2 py-1 border rounded" />
+        <textarea id="message" placeholder="한 줄 메시지" class="w-full px-2 py-1 border rounded"></textarea>
+        <button type="submit" class="mt-2 w-full bg-blue-600 text-white px-2 py-1 rounded">작성</button>
+      </form>
+      <ul id="guestbookList" class="space-y-1 max-h-48 overflow-auto text-xs text-gray-700"></ul>
+    </div>
+    
+    <!-- 로그인 모달 -->
+    <div id="loginFormBox" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50 hidden">
+      <div class="bg-white border rounded shadow-lg p-6 w-80 relative">
+        <!-- ✅ 닫기 버튼 -->
+        <button id="closeLoginBtn"
+          class="absolute top-2 right-2 text-gray-500 hover:text-red-600 text-xl font-bold">&times;</button>
+
+        <h3 class="text-lg font-semibold mb-4 text-center">🔐 관리자 로그인</h3>
+        <form id="loginForm" class="space-y-3">
+          <input id="loginEmail" type="email" placeholder="이메일" required
+            class="w-full px-3 py-2 border rounded text-sm" />
+          <input id="loginPassword" type="password" placeholder="비밀번호" required
+            class="w-full px-3 py-2 border rounded text-sm" />
+          <button type="submit"
+            class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition">로그인</button>
+        </form>
+      </div>
     </div>
   </div>
 
@@ -125,7 +167,11 @@
       }
       return "기타/알 수 없음";
     }
-
+    
+    function toggleGuestbook() {
+      const guestbook = document.getElementById("guestbook");
+      guestbook.classList.toggle("hidden");
+    }
     function renderFairLinks() {
       const list = document.getElementById("fairLinkList");
       list.innerHTML = "";
@@ -390,7 +436,261 @@
         hideLoading();
       }
     }
+  </script>
+  
 
+  <script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-analytics.js";
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      serverTimestamp,
+      query,
+      orderBy,
+      limit,
+      onSnapshot,
+      deleteDoc,       // ✅ 이 줄 추가!
+      doc              // ✅ 이 줄도 함께 필요 (문서 참조용)
+    } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+    import {
+      getAuth,
+      signInWithEmailAndPassword,
+      signOut,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
+
+    // TODO: Add SDKs for Firebase products that you want to use
+    // https://firebase.google.com/docs/web/setup#available-libraries
+
+    // Your web app's Firebase configuration
+    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+    const firebaseConfig = {
+      apiKey: "AIzaSyD2EEBetGbTQLhd7EUA21yYGHP0WOk5wIE",
+      authDomain: "fairblog-e5054.firebaseapp.com",
+      projectId: "fairblog-e5054",
+      storageBucket: "fairblog-e5054.firebasestorage.app",
+      messagingSenderId: "521579840672",
+      appId: "1:521579840672:web:d00975b2bd5255639875c5",
+      measurementId: "G-HNBS1KD7JX"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app)
+    const db = getFirestore(app);
+    const auth = getAuth();
+
+    let isAdmin = false;
+
+    document.getElementById("loginBtn").onclick = () => {
+      document.getElementById("loginFormBox").classList.toggle("hidden");
+    };
+
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const email = document.getElementById("loginEmail").value.trim();
+      const password = document.getElementById("loginPassword").value.trim();
+
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        alert("✅ 로그인 성공");
+        document.getElementById("loginFormBox").classList.add("hidden");
+      } catch (err) {
+        alert("❌ 로그인 실패: " + err.message);
+      }
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        document.getElementById("loginFormBox").classList.add("hidden");
+      }
+    });
+
+    document.getElementById("closeLoginBtn").onclick = () => {
+      document.getElementById("loginFormBox").classList.add("hidden");
+    };
+    
+    // 로그아웃 처리
+    document.getElementById("logoutBtn").onclick = async () => {
+      await signOut(auth);
+      alert("🚪 로그아웃 되었습니다");
+    };
+
+    // ✅ Auth 상태 감지 → startGuestbookListener 호출
+    onAuthStateChanged(auth, async (user) => {
+      const loginBtn = document.getElementById("loginBtn");
+      const logoutBtn = document.getElementById("logoutBtn");
+
+      if (!loginBtn || !logoutBtn) {
+        console.warn("❗ loginBtn 또는 logoutBtn 요소를 찾지 못했습니다.");
+        return;
+      }
+
+      if (user) {
+        const token = await user.getIdTokenResult();
+        isAdmin = !!token.claims.admin;
+
+        console.log("✅ 로그인됨:", user.email);
+        console.log("🛡 isAdmin:", isAdmin);
+
+        // ✅ 로그인 시 로그인 버튼 숨김, 로그아웃 버튼 표시
+        loginBtn.classList.add("hidden");
+        logoutBtn.classList.remove("hidden");
+
+      } else {
+        isAdmin = false;
+
+        // ✅ 로그아웃 시 로그인 버튼 표시, 로그아웃 버튼 숨김
+        loginBtn.classList.remove("hidden");
+        logoutBtn.classList.add("hidden");
+      }
+
+      const nicknameInput = document.getElementById("nickname");
+      if (user) {
+        const token = await user.getIdTokenResult();
+        isAdmin = !!token.claims.admin;
+
+        if (isAdmin) {
+          nicknameInput.value = "관리자";
+          nicknameInput.disabled = true;
+        } else {
+          nicknameInput.disabled = false;
+        }
+      } else {
+        isAdmin = false;
+        nicknameInput.disabled = false;
+      }
+
+      startGuestbookListener(); // ← 여기서 UI 다시 렌더
+    });
+
+    // ✅ 이 부분이 실시간 방명록 리스너 정의
+    function startGuestbookListener() {
+      const q = query(
+        collection(db, "guestbook"),
+        orderBy("timestamp", "asc"),
+        limit(50)
+      );
+
+      onSnapshot(q, (snapshot) => {
+        const list = document.getElementById("guestbookList");
+        list.innerHTML = "";
+
+        snapshot.forEach((docSnap) => {
+          const data = docSnap.data();
+          const li = document.createElement("li");
+
+          // ✅ 기본 스타일
+          li.className = "flex justify-between items-center border-b py-1";
+
+          // ✅ 관리자 닉네임 스타일링
+          const isAdminMessage = data.nickname === "관리자";
+
+          li.innerHTML = `
+            <span class="${isAdminMessage ? 'text-blue-600 font-bold' : ''}">
+              🗣 ${data.nickname}: ${data.message}
+            </span>
+          `;
+
+          // ✅ 삭제 버튼은 현재 로그인한 사용자가 관리자일 때만
+          if (isAdmin) {
+            const delBtn = document.createElement("button");
+            delBtn.textContent = "삭제";
+            delBtn.className = "text-xs text-red-500 hover:underline ml-2";
+            delBtn.onclick = async () => {
+              if (confirm("정말 삭제하시겠습니까?")) {
+                await deleteDoc(doc(db, "guestbook", docSnap.id));
+              }
+            };
+            li.appendChild(delBtn);
+          }
+
+          list.appendChild(li);
+        });
+      });
+    }
+
+    function generateRandomNickname() {
+      const adjectives = ["귀여운", "느긋한", "활발한", "용감한", "우아한", "빠른", "조용한", "엉뚱한"];
+      const animals = ["토끼", "고양이", "강아지", "판다", "수달", "여우", "하마", "다람쥐"];
+      const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
+      const animal = animals[Math.floor(Math.random() * animals.length)];
+      return `${adj} ${animal}`;
+    }
+    
+    // ✅ 방명록 작성 처리
+    const form = document.getElementById("guestbookForm");
+    const nicknameInput = document.getElementById("nickname");
+    const messageInput = document.getElementById("message");
+    const list = document.getElementById("guestbookList");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      let nickname = nicknameInput.value.trim();
+      const message = messageInput.value.trim();
+      if (!message) return;
+
+      // ✅ 관리자일 경우 닉네임은 고정
+      if (isAdmin) {
+        nickname = "관리자";
+      }
+
+      // ✅ 일반 사용자는 "관리자" 닉네임 금지
+      if (nickname === "관리자" && !isAdmin) {
+        alert("❌ '관리자'라는 닉네임은 사용할 수 없습니다.");
+        return;
+      }
+
+      // ✅ 비어 있거나 자동 입력 시 랜덤 생성
+      if (!nickname) {
+        nickname = generateRandomNickname();
+      }
+
+      try {
+        await addDoc(collection(db, "guestbook"), {
+          nickname,
+          message,
+          timestamp: serverTimestamp()
+        });
+        messageInput.value = "";
+      } catch (err) {
+        console.error("🔥 방명록 저장 실패:", err);
+      }
+    });
+
+    // ✅ 실시간 메시지 표시
+    const q = query(
+      collection(db, "guestbook"),
+      orderBy("timestamp", "desc"),
+      limit(20)
+    );
+
+    onSnapshot(q, (snapshot) => {
+      list.innerHTML = "";
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        const li = document.createElement("li");
+        li.textContent = `🗣 ${data.nickname}: ${data.message}`;
+        list.appendChild(li);
+      });
+    });
+
+    window.addEventListener("DOMContentLoaded", () => {
+      const nicknameInput = document.getElementById("nickname");
+      if (!nicknameInput.value) {
+        nicknameInput.value = generateRandomNickname();  // ✅ 실제 입력값으로 설정
+      }
+
+      const guestbook = document.getElementById("guestbook");
+      if (window.innerWidth < 640) {
+        guestbook.classList.add("hidden");
+      }
+    });
   </script>
 </body>
 </html>
