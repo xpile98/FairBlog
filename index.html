@@ -52,19 +52,28 @@
       <div class="bg-blue-600 h-full transition-all" style="width: 0%;"></div>
     </div>
 
-    <div id="tagFilter" class="mt-6 mb-4 flex flex-wrap gap-2">
-      <button onclick="filterByTag('전체')" class="px-3 py-1 bg-gray-300 rounded">전체</button>
-      <button onclick="filterByTag('공정위 이미지 있음')" class="px-3 py-1 bg-gray-300 rounded">공정위 이미지 있음</button>
-      <button onclick="filterByTag('공정위 이미지 없음')" class="px-3 py-1 bg-gray-300 rounded">공정위 이미지 없음</button>
-      <button onclick="filterByTag('상단 배치')" class="px-3 py-1 bg-gray-300 rounded">상단 배치</button>
-      <button onclick="filterByTag('하단 배치')" class="px-3 py-1 bg-gray-300 rounded">하단 배치</button>
-      <button onclick="filterByTag('스티커 있음')" class="px-3 py-1 bg-gray-300 rounded">스티커 있음</button>
-      <button onclick="filterByTag('스티커 없음')" class="px-3 py-1 bg-gray-300 rounded">스티커 없음</button>
+    <!-- 정렬 방식 -->
+    <div class="mb-2 text-sm font-semibold text-gray-700">🧭 정렬 방식</div>
+    <div id="tagFilter" class="mb-4 flex flex-nowrap gap-2 overflow-x-auto whitespace-nowrap text-sm">
+      <button onclick="filterByTag('전체')" class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400">전체</button>
+      <button onclick="filterByTag('공정위O')" class="px-3 py-1 bg-green-100 text-green-800 rounded hover:bg-green-200">공정위O</button>
+      <button onclick="filterByTag('공정위X')" class="px-3 py-1 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">공정위X</button>
+      <button onclick="filterByTag('상단')" class="px-3 py-1 bg-blue-100 text-blue-800 rounded hover:bg-blue-200">상단</button>
+      <button onclick="filterByTag('하단')" class="px-3 py-1 bg-red-100 text-red-800 rounded hover:bg-red-200">하단</button>
+      <button onclick="filterByTag('스티커')" class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded hover:bg-yellow-200">스티커</button>
     </div>
 
+    <!-- 보기 방식 -->
+    <div class="mb-2 text-sm font-semibold text-gray-700">🖼 보기 방식</div>
+    <div class="mb-4 flex flex-nowrap gap-2 overflow-x-auto whitespace-nowrap text-sm">
+      <button onclick="setViewMode('list')" id="btnListView"
+        class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300">☰ 리스트</button>
+      <button onclick="setViewMode('grid')" id="btnGridView"
+        class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300">🔲 그리드</button>
+    </div>
 
     <!-- 결과 표시 -->
-    <ul id="postList" class="space-y-4"></ul>
+    <ul id="postList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch"></ul>
     <section class="mt-8">
       <h2 class="text-lg font-semibold mb-2">📄 요약 TXT</h2>
       <pre id="reportContent" class="w-full p-3 bg-gray-100 border rounded text-sm whitespace-pre-wrap h-64 overflow-auto"></pre>
@@ -222,39 +231,39 @@
 
         // 태그 박스 목록 준비
         const tagList = [];
+        const tagTextsForFilter = [];
 
         if (hasFair) {
-          tagList.push({ text: "✅ 공정위 이미지 있음", class: "text-green-700 bg-green-100" });
+          tagList.push({ text: "공정위O", class: "bg-green-100 text-green-800" });
+          tagTextsForFilter.push("공정위O");
 
           if (post.fair_trade_img_position === 1) {
-            tagList.push({ text: "📌 상단 배치", class: "text-blue-700 bg-blue-100" });
+            tagList.push({ text: "상단", class: "bg-blue-100 text-blue-800" });
+            tagTextsForFilter.push("상단");
           } else {
-            tagList.push({ text: "❗ 하단 배치", class: "text-red-700 bg-red-100" });
+            tagList.push({ text: "하단", class: "bg-red-100 text-red-800" });
+            tagTextsForFilter.push("하단");
           }
         } else {
-          tagList.push({ text: "🚫 공정위 이미지 없음", class: "text-gray-700 bg-gray-100" });
+          tagList.push({ text: "공정위X", class: "bg-gray-200 text-gray-800" });
+          tagTextsForFilter.push("공정위X");
         }
 
         if (post.first_image_url?.includes("storep-phinf")) {
-          tagList.push({ text: "🏷️ 스티커 있음", class: "text-yellow-700 bg-yellow-100" });
-        } else {
-          tagList.push({ text: "스티커 없음", class: "text-gray-500 bg-gray-100" });
+          tagList.push({ text: "스티커", class: "bg-yellow-100 text-yellow-800" });
+          tagTextsForFilter.push("스티커");
         }
 
-        // DOM으로 각각의 span 요소 생성해서 p에 붙이기
-        const tagContainer = document.createElement("p");
-        tagContainer.className = "mt-2 flex flex-wrap gap-2";
+        const tagContainer = document.createElement("div");
+        //tagContainer.className = "mt-2 flex flex-wrap gap-1";
+        tagContainer.className = "mt-auto pt-2 flex flex-wrap gap-1";
 
-        const tagTextsForFilter = []; // 필터링용 문자열 모음
 
         tagList.forEach(tag => {
           const span = document.createElement("span");
-          span.className = `inline-block text-sm px-2 py-1 rounded ${tag.class}`;
+          span.className = `text-xs px-2 py-0.5 rounded ${tag.class}`;
           span.textContent = tag.text;
           tagContainer.appendChild(span);
-
-          const plainText = tag.text.replace(/^[^가-힣a-zA-Z]+/, '').trim(); 
-          tagTextsForFilter.push(plainText);
         });
 
         // ✅ 스티커 여부에 따라 이미지 URL 선택
@@ -262,21 +271,40 @@
 
         // 카드 생성
         const li = document.createElement("li");
-        li.className = "border rounded-md p-4 mb-4 bg-white shadow-sm";
+        // li.className = "border rounded-md p-4 mb-4 bg-white shadow-sm";
+        li.className = currentViewMode === 'grid'
+          ? "border rounded-md p-2 bg-white shadow-sm flex flex-col text-sm min-h-[180px]"
+          : "border rounded-md p-4 mb-4 bg-white shadow-sm";
 
         li.innerHTML = `
           <div class="flex gap-4 items-start">
             <img
               src="${finalImageUrl}"
               alt="썸네일"
-              class="w-24 h-24 sm:w-32 sm:h-32 object-cover bg-gray-100 border rounded-md"
+              class="w-20 h-20 sm:w-24 sm:h-24 object-cover bg-gray-100 border rounded-md"
               style="user-select: none;"
               onerror="this.style.display='none'"
             />
-            <div class="flex-1">
-              <h2 class="text-lg font-semibold"><a href="${post.url}" target="_blank">${post.title}</a></h2>
+            <div class="flex-1 overflow-hidden">
+              <h2 class="font-semibold text-sm leading-snug line-clamp-2 overflow-hidden">
+                <a href="${post.url}" target="_blank">${post.title}</a>
+              </h2>
               <p class="text-sm text-gray-500">${post.date}</p>
-              ${!hasFair ? `<p class="text-sm mt-1 text-gray-700">${post.first_100_chars}</p>` : ''}
+              ${!hasFair 
+                ? 
+                `
+                  <p class="text-xs text-gray-500 mt-1 overflow-hidden" style="
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                    line-height: 1.2rem;
+                    max-height: 2.4rem;
+                  ">
+                    ${post.first_100_chars}
+                  </p>
+                ` 
+                : ''
+              }
             </div>
           </div>
         `;
@@ -342,6 +370,22 @@
         }
       });
     }
+
+    let currentViewMode = 'list';
+
+    function setViewMode(mode) {
+      currentViewMode = mode;
+      document.getElementById('postList').className = mode === 'grid'
+        ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'
+        : 'space-y-4';
+
+      // 버튼 스타일 업데이트
+      document.getElementById('btnListView').classList.toggle('bg-blue-600', mode === 'list');
+      document.getElementById('btnListView').classList.toggle('text-white', mode === 'list');
+      document.getElementById('btnGridView').classList.toggle('bg-blue-600', mode === 'grid');
+      document.getElementById('btnGridView').classList.toggle('text-white', mode === 'grid');
+    }
+
 
     async function fetchBlogPosts() {
       const blogId = document.getElementById("blogId").value.trim();
@@ -601,7 +645,9 @@
           const li = document.createElement("li");
 
           // ✅ 기본 스타일
-          li.className = "flex justify-between items-center border-b py-1";
+          //li.className = "flex justify-between items-center border-b py-1";
+          li.className = "flex flex-col justify-between h-full min-h-[200px] border rounded-md p-2 bg-white shadow-sm text-sm";
+
 
           // ✅ 관리자 닉네임 스타일링
           const isAdminMessage = data.nickname === "관리자";
