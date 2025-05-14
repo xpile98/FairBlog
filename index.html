@@ -161,7 +161,7 @@
       modeLabel.classList.remove("bg-gray-500");
       modeLabel.classList.add("bg-yellow-600");
     } else {
-      modeLabel.textContent = "✅ 최종 빌드 (20250514_1800)";
+      modeLabel.textContent = "✅ 최종 빌드 (20250514_1840)";
       modeLabel.classList.remove("bg-gray-500");
       modeLabel.classList.add("bg-green-700");
     }
@@ -339,7 +339,7 @@
         // 카드 요소 생성
         const li = document.createElement("li");
         li.className = currentViewMode === 'grid'
-          ? "border rounded-md p-2 bg-white shadow-sm flex flex-col text-sm min-h-[180px]"
+          ? "border rounded-md p-2 bg-white shadow-sm flex flex-col text-sm min-h-[110px]"
           : "border rounded-md p-4 mb-4 bg-white shadow-sm";
         li.setAttribute("data-tags", tagTextsForFilter.join(" "));
 
@@ -347,14 +347,14 @@
         wrapper.className = "flex gap-4 items-start";
 
         const imageWrapper = document.createElement("div");
-        imageWrapper.className = "relative";
+        imageWrapper.className = "relative self-center";
 
         const img = document.createElement("img");
         img.src = finalImageUrl;
         img.alt = "썸네일";
         img.className = useFairImage
-          ? "w-24 h-24 sm:w-32 sm:h-32 object-contain bg-gray-100 border rounded-md"
-          : "w-24 h-24 sm:w-32 sm:h-32 object-cover bg-gray-100 border rounded-md";
+          ? "w-20 h-20 sm:w-24 sm:h-24 object-contain bg-gray-100 border rounded-md"
+          : "w-20 h-20 sm:w-24 sm:h-24 object-cover bg-gray-100 border rounded-md";
         img.style.userSelect = "none";
         img.onerror = () => { img.style.display = "none"; };
 
@@ -504,6 +504,9 @@
       });
       const activeBtn = document.getElementById(`btn${capitalize(mode)}View`);
       activeBtn.classList.add("bg-blue-600", "text-white");
+
+      // 🔁 다시 랜더링
+      renderPosts(globalPostData);
     }
 
     function capitalize(str) {
@@ -590,7 +593,8 @@
 
         // 🟢 3단계: 결과 렌더링
         const filteredPosts = allPosts.filter(p => p !== null);
-        renderPosts(filteredPosts);
+        globalPostData = filteredPosts;
+        renderPosts(globalPostData);
         //renderPosts(allPosts);
         renderTxt(allPosts);
         loadingText.textContent = `✅ 분석 완료! 총 ${allPosts.length}건`;
