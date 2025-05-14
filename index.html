@@ -4,7 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>공정위 문구 검사기</title>
-  <meta name="description" content="공정위 문구 검사기, 블로거와 마케터를 위한 무료 툴">
+  <meta name="description" content="블로거를 위한 공정위 문구 검사기! 광고 표시 의무를 간편하게 체크하세요.">
+  <meta name="keywords" content="공정위, 블로그 광고, 공정위 검사기, 블로그 도구, 체험단">
   <meta name="robots" content="index, follow">
   <meta name="google-site-verification" content="qoyiCn5HdEafxTpuvuTjg9UAPNcl__rm0N85A-RChtU" />
   <script src="https://cdn.tailwindcss.com"></script>
@@ -161,7 +162,7 @@
       modeLabel.classList.remove("bg-gray-500");
       modeLabel.classList.add("bg-yellow-600");
     } else {
-      modeLabel.textContent = "✅ 최종 빌드 (20250514_1340)";
+      modeLabel.textContent = "✅ 최종 빌드 (20250514_1700)";
       modeLabel.classList.remove("bg-gray-500");
       modeLabel.classList.add("bg-green-700");
     }
@@ -755,18 +756,34 @@
           const data = docSnap.data();
           const li = document.createElement("li");
 
-          // ✅ 기본 스타일
-          //li.className = "flex justify-between items-center border-b py-1";
-          li.className = "flex flex-col justify-between h-full min-h-[200px] border rounded-md p-2 bg-white shadow-sm text-sm";
 
 
           // ✅ 관리자 닉네임 스타일링
           const isAdminMessage = data.nickname === "관리자";
 
+          const timestamp = data.timestamp?.toDate?.();
+          const dateText = timestamp
+            ? timestamp.toLocaleString('ko-KR', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+              })
+            : '작성일자 없음';
+
+          li.className = "border-b py-2 text-sm text-left";
+
           li.innerHTML = `
-            <span class="${isAdminMessage ? 'text-blue-600 font-bold' : ''}">
-              🗣 ${data.nickname}: ${data.message}
-            </span>
+            <div class="text-sm text-gray-800 break-words leading-snug">
+              <span class="${isAdminMessage ? 'text-blue-600 font-bold' : 'font-medium'}">
+                🧑 ${data.nickname}:
+              </span>
+              <span>${data.message}</span>
+            </div>
+            <div class="text-xs text-gray-500 mt-0.5 text-right w-full">
+              🕒 ${dateText}
+            </div>
           `;
 
           // ✅ 삭제 버튼은 현재 로그인한 사용자가 관리자일 때만
