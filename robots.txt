@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://xpile98.github.io/FairBlog/sitemap.xml
