@@ -167,7 +167,7 @@
       "dinnerqueen.net": "디너의여왕",        
       "revu.net": "레뷰",        
       "reviewplace.co.kr": "리뷰플레이스",       
-      "postfiles.pstatic.net": "클라우드리뷰",  
+      "nugunablog.co.kr": "클라우드리뷰",  
       "tble.kr": "티블",  
       "seoulouba.co.kr": "서울오빠",  
       "dailyview.kr": "데일리뷰",  
@@ -228,13 +228,14 @@
         a.rel = "noopener noreferrer";
         a.className = "inline-block box-border p-[5px_8px_6px] border border-gray-200 rounded-[6px] text-center w-20 h-10 flex items-center justify-center text-xs font-semibold text-gray-600";
 
+        a.onclick = (e) => e.preventDefault();  // ✅ 링크 클릭 방지
+
         const img = new Image();
         img.src = `${basePath}/img/${name}.png`;
         img.alt = name;
         img.className = "w-full h-full object-contain";
 
         img.onload = () => {
-          img.style.pointerEvents = "none";  // ✅ 클릭 무효화
           a.textContent = "";
           a.appendChild(img);
         };
@@ -279,11 +280,18 @@
         const hasFair = post.fair_trade_img_url;
         const isSuspicious = hasFair && post.fair_trade_img_position !== 1;
         const useFairImage = post.fair_trade_img_url && post.fair_trade_img_position === 1;
+
+        // 기본 이미지 URL 결정
         let imageSrc = useFairImage ? post.fair_trade_img_url : post.first_image_url;
-        
-        // ✅ 강남맛집.net 포함 시 무조건 고정 URL로 대체
+
+        // ✅ 강남맛집.net 포함 시 고정 URL로 대체
         if (imageSrc.includes("강남맛집.net")) {
           imageSrc = "https://xn--939au0g4vj8sq.net/_sp/wgs.php?ctf=MzE4MDI0fDE3NDEzNDd8YWRtXzI5MzI4Nnw4NjgxMXwyMDI1MDUxNg==";
+        }
+
+        // ✅ 흐릿한 썸네일 제거 or 고화질로 교체
+        if (!useFairImage && imageSrc.includes("type=w") && imageSrc.includes("_blur")) {
+          imageSrc = imageSrc.replace(/type=w\d+_blur/, 'type=w800'); // or '' to remove completely
         }
 
         let BASE_URL = isTestMode ? "http://localhost:3000" : "https://fairblog.onrender.com";
@@ -338,12 +346,16 @@
           ? "border rounded-md p-2 bg-white shadow-sm flex flex-col text-sm min-h-[180px]"
           : "border rounded-md p-4 mb-4 bg-white shadow-sm";
 
+        const imageClass = useFairImage
+          ? "w-24 h-24 sm:w-32 sm:h-32 object-contain"
+          : "w-24 h-24 sm:w-32 sm:h-32 object-cover";
+            
         li.innerHTML = `
           <div class="flex gap-4 items-start">
             <img
               src="${finalImageUrl}"
               alt="썸네일"
-              class="w-20 h-20 sm:w-24 sm:h-24 object-cover bg-gray-100 border rounded-md"
+              class="${imageClass} bg-gray-100 border rounded-md"
               style="user-select: none;"
               onerror="this.style.display='none'"
             />
