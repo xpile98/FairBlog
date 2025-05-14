@@ -59,12 +59,11 @@
     <!-- 정렬 방식 -->
     <div class="mb-2 text-sm font-semibold text-gray-700">🧭 정렬 방식</div>
     <div id="tagFilter" class="mb-4 flex flex-nowrap gap-2 overflow-x-auto whitespace-nowrap text-sm">
-      <button onclick="filterByTag('전체')" class="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400">전체</button>
-      <button onclick="filterByTag('공정위O')" class="px-3 py-1 bg-green-100 text-green-800 rounded hover:bg-green-200">공정위O</button>
-      <button onclick="filterByTag('공정위X')" class="px-3 py-1 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">공정위X</button>
-      <button onclick="filterByTag('상단')" class="px-3 py-1 bg-blue-100 text-blue-800 rounded hover:bg-blue-200">상단</button>
-      <button onclick="filterByTag('하단')" class="px-3 py-1 bg-red-100 text-red-800 rounded hover:bg-red-200">하단</button>
-      <button onclick="filterByTag('스티커')" class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded hover:bg-yellow-200">스티커</button>
+      <button onclick="filterByTag('전체')" class="px-3 py-1 rounded border bg-gray-100 text-gray-800 hover:bg-gray-200">전체</button>
+      <button onclick="filterByTag('공정위 정책 지킴')" class="px-3 py-1 rounded border bg-green-100 text-green-800 hover:bg-green-200">공정위 정책 지킴</button>
+      <button onclick="filterByTag('공정위 정책 위반')" class="px-3 py-1 rounded border bg-red-100 text-red-800 hover:bg-red-200">공정위 정책 위반</button>
+      <button onclick="filterByTag('스티커 있는 글')" class="px-3 py-1 rounded border bg-yellow-100 text-yellow-800 hover:bg-yellow-200">스티커 있는 글</button>
+      <button onclick="filterByTag('스티커 없는 글')" class="px-3 py-1 rounded border bg-gray-200 text-gray-800 hover:bg-gray-300">스티커 없는 글</button>
     </div>
 
     <!-- 보기 방식 -->
@@ -162,7 +161,7 @@
       modeLabel.classList.remove("bg-gray-500");
       modeLabel.classList.add("bg-yellow-600");
     } else {
-      modeLabel.textContent = "✅ 최종 빌드 (20250514_1710)";
+      modeLabel.textContent = "✅ 최종 빌드 (20250514_1800)";
       modeLabel.classList.remove("bg-gray-500");
       modeLabel.classList.add("bg-green-700");
     }
@@ -278,155 +277,163 @@
       document.getElementById("loadingBar").firstElementChild.style.width = `${percent}%`;
     }
 
+    let currentViewMode = 'list';
+
     // 포스트 렌더링
     function renderPosts(posts) {
-    const list = document.getElementById("postList");
-    list.innerHTML = "";
+      console.log("📦 renderPosts 진입 - 현재 보기 모드:", currentViewMode);
 
-    const emptyMsg = document.getElementById("emptyMessage");
-    if (emptyMsg) emptyMsg.remove();
+      const list = document.getElementById("postList");
+      list.innerHTML = "";
 
-    posts.forEach(post => {
-      const hasFair = post.fair_trade_img_url;
-      const useFairImage = hasFair && post.fair_trade_img_position === 1;
-      const hasSticker = post.first_image_url?.includes("storep-phinf");
+      const emptyMsg = document.getElementById("emptyMessage");
+      if (emptyMsg) emptyMsg.remove();
 
-      // ✅ 우선순위: 공정위 상단 이미지 > 스티커 이미지 > 일반 썸네일
-      let imageSrc = useFairImage
-        ? post.fair_trade_img_url
-        : hasSticker
-          ? post.first_image_url
-          : post.first_image_url;
+      posts.forEach(post => {
+        const hasFair = post.fair_trade_img_url;
+        const useFairImage = hasFair && post.fair_trade_img_position === 1;
+        const hasSticker = post.first_image_url?.includes("storep-phinf");
 
-      if (imageSrc.includes("강남맛집.net")) {
-        imageSrc = "https://xn--939au0g4vj8sq.net/_sp/wgs.php?ctf=MzE4MDI0fDE3NDEzNDd8YWRtXzI5MzI4Nnw4NjgxMXwyMDI1MDUxNg==";
-      }
+        // ✅ 우선순위: 공정위 상단 이미지 > 스티커 이미지 > 일반 썸네일
+        let imageSrc = useFairImage
+          ? post.fair_trade_img_url
+          : hasSticker
+            ? post.first_image_url
+            : post.first_image_url;
 
-      if (!useFairImage && imageSrc.includes("type=w") && imageSrc.includes("_blur")) {
-        imageSrc = imageSrc.replace(/type=w\d+_blur/, 'type=w800');
-      }
-
-      const BASE_URL = isTestMode ? "http://localhost:3000" : "https://fairblog.onrender.com";
-      const encodedUrl = encodeURIComponent(imageSrc);
-      const proxyImageSrc = `${BASE_URL}/proxy?url=${encodedUrl}`;
-      const finalImageUrl = useFairImage ? imageSrc : proxyImageSrc;
-
-      // 태그 정리
-      const tagList = [];
-      const tagTextsForFilter = [];
-
-      if (hasFair) {
-        tagList.push({ text: "공정위O", class: "bg-green-100 text-green-800" });
-        tagTextsForFilter.push("공정위O");
-
-        if (post.fair_trade_img_position === 1) {
-          tagList.push({ text: "상단", class: "bg-blue-100 text-blue-800" });
-          tagTextsForFilter.push("상단");
-        } else {
-          tagList.push({ text: "하단", class: "bg-red-100 text-red-800" });
-          tagTextsForFilter.push("하단");
+        if (imageSrc.includes("강남맛집.net")) {
+          imageSrc = "https://xn--939au0g4vj8sq.net/_sp/wgs.php?ctf=MzE4MDI0fDE3NDEzNDd8YWRtXzI5MzI4Nnw4NjgxMXwyMDI1MDUxNg==";
         }
-      } else {
-        tagList.push({ text: "공정위X", class: "bg-gray-200 text-gray-800" });
-        tagTextsForFilter.push("공정위X");
-      }
 
-      if (post.first_image_url?.includes("storep-phinf")) {
-        tagList.push({ text: "스티커", class: "bg-yellow-100 text-yellow-800" });
-        tagTextsForFilter.push("스티커");
-      }
+        if (!useFairImage && imageSrc.includes("type=w") && imageSrc.includes("_blur")) {
+          imageSrc = imageSrc.replace(/type=w\d+_blur/, 'type=w800');
+        }
 
-      // 카드 요소 생성
-      const li = document.createElement("li");
-      li.className = currentViewMode === 'grid'
-        ? "border rounded-md p-2 bg-white shadow-sm flex flex-col text-sm min-h-[180px]"
-        : "border rounded-md p-4 mb-4 bg-white shadow-sm";
-      li.setAttribute("data-tags", tagTextsForFilter.join(" "));
+        const BASE_URL = isTestMode ? "http://localhost:3000" : "https://fairblog.onrender.com";
+        const encodedUrl = encodeURIComponent(imageSrc);
+        const proxyImageSrc = `${BASE_URL}/proxy?url=${encodedUrl}`;
+        const finalImageUrl = useFairImage ? imageSrc : proxyImageSrc;
 
-      const wrapper = document.createElement("div");
-      wrapper.className = "flex gap-4 items-start";
+        // 태그 정리
+        const tagList = [];
+        const tagTextsForFilter = [];
 
-      const imageWrapper = document.createElement("div");
-      imageWrapper.className = "relative";
+        if (hasFair) {
+          if (post.fair_trade_img_position === 1) {
+            tagList.push({ text: "공정위 정책 지킴", class: "bg-green-100 text-green-800" });
+            tagTextsForFilter.push("공정위 정책 지킴");
+          } else {
+            tagList.push({ text: "공정위 정책 위반", class: "bg-red-100 text-red-800" });
+            tagTextsForFilter.push("공정위 정책 위반");
+          }
+        } else {
+          if (post.first_image_url?.includes("storep-phinf")) {
+            tagList.push({ text: "스티커 있는 글", class: "bg-yellow-100 text-yellow-800" });
+            tagTextsForFilter.push("스티커 있는 글");
+          } else {
+            tagList.push({ text: "스티커 없는 글", class: "bg-gray-200 text-gray-800" });
+            tagTextsForFilter.push("스티커 없는 글");
+          }
+        }
 
-      const img = document.createElement("img");
-      img.src = finalImageUrl;
-      img.alt = "썸네일";
-      img.className = useFairImage
-        ? "w-24 h-24 sm:w-32 sm:h-32 object-contain bg-gray-100 border rounded-md"
-        : "w-24 h-24 sm:w-32 sm:h-32 object-cover bg-gray-100 border rounded-md";
-      img.style.userSelect = "none";
-      img.onerror = () => { img.style.display = "none"; };
+        // 카드 요소 생성
+        const li = document.createElement("li");
+        li.className = currentViewMode === 'grid'
+          ? "border rounded-md p-2 bg-white shadow-sm flex flex-col text-sm min-h-[180px]"
+          : "border rounded-md p-4 mb-4 bg-white shadow-sm";
+        li.setAttribute("data-tags", tagTextsForFilter.join(" "));
 
-      // ✅ 클릭 시 모달 이미지 확대
-      img.addEventListener("click", () => {
-        const modal = document.getElementById("imageModal");
-        const modalImg = document.getElementById("modalImage");
-        modalImg.src = finalImageUrl;
-        modal.classList.remove("hidden");
+        const wrapper = document.createElement("div");
+        wrapper.className = "flex gap-4 items-start";
+
+        const imageWrapper = document.createElement("div");
+        imageWrapper.className = "relative";
+
+        const img = document.createElement("img");
+        img.src = finalImageUrl;
+        img.alt = "썸네일";
+        img.className = useFairImage
+          ? "w-24 h-24 sm:w-32 sm:h-32 object-contain bg-gray-100 border rounded-md"
+          : "w-24 h-24 sm:w-32 sm:h-32 object-cover bg-gray-100 border rounded-md";
+        img.style.userSelect = "none";
+        img.onerror = () => { img.style.display = "none"; };
+
+        // ✅ 클릭 시 모달 이미지 확대
+        img.addEventListener("click", () => {
+          const modal = document.getElementById("imageModal");
+          const modalImg = document.getElementById("modalImage");
+          modalImg.src = finalImageUrl;
+          modal.classList.remove("hidden");
+        });
+
+        imageWrapper.appendChild(img);
+        wrapper.appendChild(imageWrapper);
+
+        const content = document.createElement("div");
+        content.className = "flex-1 overflow-hidden";
+
+        const title = document.createElement("h2");
+        title.className = "font-semibold text-sm leading-snug line-clamp-2 overflow-hidden";
+        title.innerHTML = `<a href="${post.url}" target="_blank">${post.title}</a>`;
+
+        const date = document.createElement("p");
+        date.className = "text-sm text-gray-500 whitespace-nowrap overflow-hidden text-ellipsis";
+        date.textContent = post.date;
+
+        content.appendChild(title);
+        content.appendChild(date);
+
+        if (currentViewMode === 'list') {
+          const summary = document.createElement("p");
+          summary.className = "text-xs text-gray-500 mt-1 overflow-hidden";
+          summary.style.display = "-webkit-box";
+          summary.style.webkitLineClamp = "2";
+          summary.style.webkitBoxOrient = "vertical";
+          summary.style.lineHeight = "1.2rem";
+          summary.style.maxHeight = "2.4rem";
+          summary.textContent = post.first_100_chars;
+          content.appendChild(summary);
+        }
+
+        const tagContainer = document.createElement("div");
+        tagContainer.className = "mt-auto pt-2 flex flex-wrap gap-1";
+        tagList.forEach(tag => {
+          const span = document.createElement("span");
+          span.className = `text-xs px-2 py-0.5 rounded ${tag.class}`;
+          span.textContent = tag.text;
+          tagContainer.appendChild(span);
+        });
+
+        content.appendChild(tagContainer);
+        wrapper.appendChild(content);
+        li.appendChild(wrapper);
+        list.appendChild(li);
+
+        if (post.first_100_chars) {
+          console.log("✏️ 요약 생성 조건 확인:", currentViewMode, post.title);
+        }
       });
-
-      imageWrapper.appendChild(img);
-      wrapper.appendChild(imageWrapper);
-
-      const content = document.createElement("div");
-      content.className = "flex-1 overflow-hidden";
-
-      const title = document.createElement("h2");
-      title.className = "font-semibold text-sm leading-snug line-clamp-2 overflow-hidden";
-      title.innerHTML = `<a href="${post.url}" target="_blank">${post.title}</a>`;
-
-      const date = document.createElement("p");
-      date.className = "text-sm text-gray-500";
-      date.textContent = post.date;
-
-      content.appendChild(title);
-      content.appendChild(date);
-
-      if (!hasFair) {
-        const summary = document.createElement("p");
-        summary.className = "text-xs text-gray-500 mt-1 overflow-hidden";
-        summary.style.display = "-webkit-box";
-        summary.style.webkitLineClamp = "2";
-        summary.style.webkitBoxOrient = "vertical";
-        summary.style.lineHeight = "1.2rem";
-        summary.style.maxHeight = "2.4rem";
-        summary.textContent = post.first_100_chars;
-        content.appendChild(summary);
-      }
-
-      const tagContainer = document.createElement("div");
-      tagContainer.className = "mt-auto pt-2 flex flex-wrap gap-1";
-      tagList.forEach(tag => {
-        const span = document.createElement("span");
-        span.className = `text-xs px-2 py-0.5 rounded ${tag.class}`;
-        span.textContent = tag.text;
-        tagContainer.appendChild(span);
-      });
-
-      content.appendChild(tagContainer);
-      wrapper.appendChild(content);
-      li.appendChild(wrapper);
-      list.appendChild(li);
-    });
-  }
+    }
 
 
     function renderTxt(posts) {
-      const suspiciousPosts = posts.filter(p =>
-        p.fair_trade_img_url && p.fair_trade_img_position !== 1
-      );
+      // 공정위 정책 위반 태그가 붙은 포스트만 추출
+      const suspiciousPosts = posts.filter(p => {
+        if (!p.fair_trade_img_url) return false; // 공정위 이미지 없음 → 패스
+        return p.fair_trade_img_position !== 1;  // 공정위 이미지가 첫 번째가 아님
+      });
 
-      // 도메인 그룹화
+      // 도메인 기준 그룹핑
       const grouped = {};
 
       suspiciousPosts.forEach(post => {
-        const domainAlias = getDomainAlias(post.fair_trade_img_url);
+        const domainAlias = getDomainAlias(post.fair_trade_img_url || post.first_image_url || "");
         if (!grouped[domainAlias]) grouped[domainAlias] = [];
         grouped[domainAlias].push(post);
       });
 
-      let txt = "📌 [공정위 문구 있음 + 첫 번째 아님 → 의심 게시글]\n";
+      // 텍스트 구성
+      let txt = "📌 [공정위 정책 위반 의심 게시글]\n";
       txt += `총 ${suspiciousPosts.length}건\n`;
       txt += "────────────────────────────\n\n";
 
@@ -437,7 +444,8 @@
         grouped[domainAlias].forEach((p, idx) => {
           txt += `${idx + 1}) ${p.title || "(제목 없음)"}\n`;
           txt += `   📎 링크: ${p.url}\n`;
-          txt += `   🖼️ 위치: ${p.fair_trade_img_position}번째\n\n`;
+          txt += `   🖼️ 위치: ${p.fair_trade_img_position}번째\n`;
+          txt += `   📅 작성일: ${p.date || "알 수 없음"}\n\n`;
         });
       }
 
@@ -467,11 +475,15 @@
       });
     }
 
-    let currentViewMode = 'list';
 
     function setViewMode(mode) {
       currentViewMode = mode;
+      console.log("🔄 보기 모드 변경:", currentViewMode);
       const listEl = document.getElementById('postList');
+      listEl.className = mode === 'grid'
+        ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch'
+        : 'space-y-4';
+
       const summaryEl = document.getElementById('summaryBox');
 
       if (mode === 'summary') {
@@ -866,6 +878,9 @@
       } else {
         guestbook.classList.remove("hidden");
       }
+
+      setViewMode('list'); // 보기 모드 초기화 (리스트로)
+
     });
 
     document.getElementById('imageModal').addEventListener('click', () => {
