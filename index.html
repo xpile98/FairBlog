@@ -234,8 +234,7 @@
         img.className = "w-full h-full object-contain";
 
         img.onload = () => {
-            img.style.pointerEvents = "none";  // ✅ 클릭 무효화
-
+          img.style.pointerEvents = "none";  // ✅ 클릭 무효화
           a.textContent = "";
           a.appendChild(img);
         };
