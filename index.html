@@ -43,7 +43,7 @@
           <span class="text-gray-600">  </span>
           <!-- ✅ 선택 결과 안내 -->
         </div>
-        <button onclick="fetchBlogPosts()" class="bg-blue-600 text-white px-4 py-2 rounded whitespace-nowrap hover:bg-blue-700 transition text-sm">검사 시작</button>
+        <button id="startBtn" onclick="fetchBlogPosts()" class="bg-blue-600 text-white px-4 py-2 rounded whitespace-nowrap hover:bg-blue-700 transition text-sm">검사 시작</button>
       </div>
     </div>
 
@@ -135,7 +135,7 @@
       modeLabel.classList.remove("bg-gray-500");
       modeLabel.classList.add("bg-yellow-600");
     } else {
-      modeLabel.textContent = "✅ 최종 빌드 (20250513_2210)";
+      modeLabel.textContent = "✅ 최종 빌드 (20250514_0910)";
       modeLabel.classList.remove("bg-gray-500");
       modeLabel.classList.add("bg-green-700");
     }
@@ -351,6 +351,10 @@
         alert("블로그 ID를 입력해주세요.");
         return;
       }
+      
+      // 👉 버튼 비활성화
+      startBtn.disabled = true;
+      startBtn.classList.add("opacity-50", "cursor-not-allowed");
 
       showLoading();
       const loadingText = document.getElementById("loadingText");
@@ -433,6 +437,11 @@
         console.error("분석 오류:", err);
         alert("⚠️ 블로그 분석 중 오류가 발생했습니다.");
       } finally {
+        
+        // 👉 버튼 다시 활성화
+        startBtn.disabled = false;
+        startBtn.classList.remove("opacity-50", "cursor-not-allowed");
+
         hideLoading();
       }
     }
