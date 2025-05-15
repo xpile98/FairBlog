@@ -54,7 +54,7 @@ async function parseBlogPostContent(postUrl, fairTradeImageLinks) {
   });
 
     const allText = contentDiv.text().replace(/\s+/g, '').trim();
-    const first100Chars = allText.slice(0, 100);
+    const first100Chars = allText.slice(0, 200);
 
     const result = {
       title,

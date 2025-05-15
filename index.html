@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>공정위 문구 검사기 - 페어블로그</title>
-<meta name="description" content="공정위 가이드라인에 따라 네이버 블로그 체험단 베너를 검사하는 무료 도구입니다. 네이버 블로그 ID를 입력하면 검사 결과가 아래에 표시됩니다.">
+  <meta name="description" content="공정위 가이드라인에 따라 네이버 블로그 체험단 베너를 검사하는 무료 도구입니다. 네이버 블로그 ID를 입력하면 검사 결과가 아래에 표시됩니다.">
   <meta name="keywords" content="공정위 문구 검사, 광고 문구 분석, 네이버 블로그 체험단, SNS 광고, 표시광고 심사 지침">
   <meta name="author" content="yongwon cho">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -12,6 +12,8 @@
   <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
   <link rel="icon" type="image/png" sizes="16x16" href="favicon.png">
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.1.1/dist/tesseract.min.js"></script>
+
 
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-YRHK2QVDMT"></script>
@@ -27,40 +29,83 @@
     <section class="text-center text-gray-700 my-6">
       <h1 onclick="location.reload()" class="text-2xl font-extrabold text-blue-600 hover:text-blue-800 transition-colors duration-200 text-center block cursor-pointer">
         공정위 문구 검사기 - 페어블로그
-      </h1>    
-      <p class="text-base">
-        네이버 블로그에 삽입한 공정위 이미지가 가이드라인에 부합하는지 자동으로 점검해보세요.<br>
-        네이버 블로그 ID를 입력하고 [검사 시작]을 클릭하면 검사 결과가 아래에 표시됩니다.
-      </p>
+      </h1>
     </section>
     
-    <!-- 블로그 ID 입력 -->
     <div class="mb-6">
-      <label for="blogId" class="block text-sm font-medium text-gray-700">네이버 블로그 ID 입력:</label>
-      <div class="flex mt-1">
-        <input type="text" id="blogId" class="flex-1 min-w-[120px] px-3 py-2 border rounded text-sm" placeholder="예: blogpeople" />
-        <div class="flex items-center gap-1 text-sm">
-          <label for="pageNum" class="text-gray-600"> </label>
+      <label for="blogId" class="block text-sm font-medium text-gray-700 mb-1">
+        네이버 블로그 ID 입력:
+      </label>
 
-          <select id="pageNum" class="border rounded px-2 py-1 text-sm">
-            <option value="1" selected>1페이지</option>
-            <option value="2">2페이지</option>
-            <option value="3">3페이지</option>
-            <option value="4">4페이지</option>
-            <option value="5">5페이지</option>
-            <option value="6">6페이지</option>
-            <option value="7">7페이지</option>
-            <option value="8">8페이지</option>
-            <option value="9">9페이지</option>
-            <option value="10">10페이지</option>
-          </select>
+      <div class="flex flex-col sm:flex-row gap-2 sm:items-center">
 
-          <span class="text-gray-600">  </span>
-          <!-- ✅ 선택 결과 안내 -->
+        <!-- ID 입력 + 페이지 선택 -->
+        <div class="flex flex-1 gap-2 items-center">
+          <input
+            type="text"
+            id="blogId"
+            class="flex-1 min-w-[100px] px-3 h-[50px] border rounded text-sm"
+            placeholder="예: blogpeople"
+          />
+
+          <div class="flex flex-col justify-end h-[50px]">
+            <label for="pageNum" class="text-xs text-gray-600 mb-1">페이지</label>
+            <select
+              id="pageNum"
+              class="w-[60px] h-[38px] px-2 border rounded text-sm"
+            >
+              <!-- 1~20 -->
+              <option value="1" selected>1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+              <option value="7">7</option>
+              <option value="8">8</option>
+              <option value="9">9</option>
+              <option value="10">10</option>
+              <option value="11">11</option>
+              <option value="12">12</option>
+              <option value="13">13</option>
+              <option value="14">14</option>
+              <option value="15">15</option>
+              <option value="16">16</option>
+              <option value="17">17</option>
+              <option value="18">18</option>
+              <option value="19">19</option>
+              <option value="20">20</option>
+            </select>
+          </div>
         </div>
-        <button id="startBtn" onclick="fetchBlogPosts()" class="bg-blue-600 text-white px-4 py-2 rounded whitespace-nowrap hover:bg-blue-700 transition text-sm">검사 시작</button>
+
+        <!-- 상세 검색 (토글) -->
+        <div class="flex flex-col justify-end h-[50px]">
+          <label for="detailedCheck" class="text-xs text-gray-600 mb-1">상세 검색</label>
+          <div class="h-[38px] flex items-center">
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="detailedCheck" class="sr-only peer" unchecked />
+              <div class="w-11 h-6 bg-gray-300 rounded-full peer-checked:bg-blue-600 transition duration-200"></div>
+              <div class="absolute left-0.5 top-0.5 w-5 h-5 bg-white border rounded-full transition peer-checked:translate-x-full peer-checked:border-white"></div>
+            </label>
+          </div>
+        </div>
+
+        <!-- 버튼 -->
+        <div class="flex items-end h-[50px]">
+          <button
+            id="startBtn"
+            onclick="fetchBlogPosts()"
+            class="h-[38px] bg-blue-600 text-white px-4 rounded whitespace-nowrap hover:bg-blue-700 transition text-sm"
+          >
+            검사 시작
+          </button>
+        </div>
+
       </div>
     </div>
+
+
 
     <div id="loadingText" class="mt-2 text-sm text-blue-700 hidden">분석 대기 중...</div>
     <div id="loadingBar" class="w-full bg-gray-200 h-2 mt-4 mb-6 rounded overflow-hidden hidden">
@@ -73,6 +118,7 @@
       <button onclick="filterByTag('전체')" class="px-3 py-1 rounded border bg-gray-100 text-gray-800 hover:bg-gray-200">전체</button>
       <button onclick="filterByTag('정책 지킴')" class="px-3 py-1 rounded border bg-green-100 text-green-800 hover:bg-green-200">정책 지킴</button>
       <button onclick="filterByTag('정책 위반')" class="px-3 py-1 rounded border bg-red-100 text-red-800 hover:bg-red-200">정책 위반</button>
+      <button onclick="filterByTag('내돈내산')" class="px-3 py-1 rounded border bg-blue-100 text-blue-800 hover:bg-blue-200">내돈내산</button>
       <button onclick="filterByTag('불분명')" class="px-3 py-1 rounded border bg-gray-200 text-gray-800 hover:bg-gray-300">불분명</button>
     </div>
 
@@ -94,18 +140,34 @@
 
     
     <!-- 결과 표시 -->
-    <ul id="postList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
-      <!-- 초기 안내 메시지 -->
-      <li id="emptyMessage" class="col-span-full text-center text-gray-500 py-10">
-        🔍 결과가 이곳에 표시됩니다. 상단에서 블로그 ID를 입력하세요.
-      </li>
-    </ul>
+    <ul id="postList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch"></ul>
+    
+    <!-- 이건 ul 밖으로 빼야 .innerHTML 영향을 안 받음 -->
+    <div id="emptyMessage" class="text-center text-gray-500 py-10">
+      🔍 결과가 이곳에 표시됩니다. 상단에서 블로그 ID를 입력하세요.
+    </div>
 
     <!-- 공정위 도메인 관리 -->
     <section class="mt-8 mb-6">
       <h2 class="text-sm font-semibold text-gray-600 mb-2">⚙️ 공정위 이미지 도메인 목록</h2>
       <div class="bg-gray-50 border rounded px-4 py-3">
         <ul id="fairLinkList" class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-700 list-none p-0 m-0"></ul>
+      </div>
+    </section>
+
+    <!-- 정책 문구 키워드 안내 -->
+    <section class="mt-8">
+      <h2 class="text-sm font-semibold text-gray-600 mb-2">📌 공정위 키워드 목록</h2>
+      <!-- 협찬 문구 키워드 -->
+      <div class="mb-4">
+        <h3 class="text-xs font-medium text-green-700 mb-1">🟢 협찬 문구 키워드</h3>
+        <div id="sponsoredKeywordTags" class="flex flex-wrap gap-2"></div>
+      </div>
+
+      <!-- 내돈내산 키워드 -->
+      <div>
+        <h3 class="text-xs font-medium text-blue-700 mb-1">🔵 내돈내산 키워드</h3>
+        <div id="nonSponsoredKeywordTags" class="flex flex-wrap gap-2"></div>
       </div>
     </section>
 
@@ -133,7 +195,7 @@
     </button>
 
     <!-- ✅ 모바일: hidden, PC: block -->
-    <div id="guestbook" class="hidden fixed top-20 right-4 w-72 bg-white border rounded shadow-lg p-4 z-50 text-sm" style="top: 150px;">
+    <div id="guestbook" class="hidden fixed top-20 right-4 w-72 bg-white border rounded shadow-lg p-4 z-50 text-sm" style="top: 200px;">
       <h3 class="text-lg font-bold mb-2">📓 방명록</h3>
       <form id="guestbookForm" class="mb-2">
         <input id="nickname" type="text" placeholder="닉네임" class="w-full mb-1 px-2 py-1 border rounded" />
@@ -183,7 +245,7 @@
       "%EA%B0%95%EB%82%A8%EB%A7%9B%EC%A7%91.net": "강남맛집",        
       "blogmall.net": "미블",        
       "d3i7y4ugnppb9p.cloudfront.net": "슈퍼멤버스",        
-      "www.reviewnote.co.kr": "리뷰노트",        
+      "reviewnote": "리뷰노트",        
       "dinnerqueen.net": "디너의여왕",        
       "revu.net": "레뷰",        
       "reviewplace.co.kr": "리뷰플레이스",       
@@ -210,14 +272,53 @@
       "unnispick.com": "언니스픽",    
       "mateb.kr": "기타체험단"          
     };
+    //포블로그, 포포몬, 디노단, 캐시노트 우리가게체험단, 
 
-    const fairTextKeywords = [
-      "공정거래위원회",
-      "소정의\\s*원고료",
-      "제공받아",
-      "광고"
+    const sponsoredKeywords = [
+      "제공받",     // 제품을 제공받아, 서비스 제공받아 등
+      "광고",       // 유료광고, 광고포함, 광고지만 등
+      "협찬",       // 협찬을 통해, 협찬받아 등
+      "무상",       // 무상제공, 무상으로 등
+      "제품을",     // 제품을 제공받아 등
+      "업체로부터", // 업체로부터 제공받아
+      "파트너스",   // 파트너스 활동
+      "이벤트",     // 이벤트 당첨
+      "의벤트",     // 오탈자 대응
+      "유료광고",   // 명시적 광고 표기
+      "원고료",     // 원고료 제공 등
+      "수수료",     // 수수료 제공, 지급 등
+      "숙박권",
+      "체험단",
+      "체험",
+      "식사권",
+      "당첨되어",
+      "초대권",
+      "제휴링크",
+      "적립금",
+      "홍보지원금",
+      "경제적대가"
     ];
-    const fairTextRegex = new RegExp(fairTextKeywords.join("|"), "i");
+
+    const nonSponsoredKeywords =  [
+      "내돈내산",
+      "내돈내먹",
+      "직접구매",
+      "직접결제",
+      "제돈으로",
+      "광고아님",
+      "광고없는",
+      "대가없이"
+    ];    
+
+    function isSponsored(text) {
+      if (!text) return false;
+      return sponsoredKeywords.some(keyword => text.includes(keyword));
+    }
+
+    function isNonSponsored(text) {
+      if (!text) return false;
+      return nonSponsoredKeywords.some(keyword => text.includes(keyword));
+    }
 
     function getDomainAlias(imageUrl) {
       for (const domain in fairDomainAliasMap) {
@@ -277,6 +378,28 @@
       });
     }
 
+    function renderKeywordTags() {
+      const sponsorBox = document.getElementById("sponsoredKeywordTags");
+      const nonSponsorBox = document.getElementById("nonSponsoredKeywordTags");
+
+      sponsorBox.innerHTML = "";
+      nonSponsorBox.innerHTML = "";
+
+      sponsoredKeywords.forEach(keyword => {
+        const span = document.createElement("span");
+        span.textContent = keyword;
+        span.className = "bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded";
+        sponsorBox.appendChild(span);
+      });
+
+      nonSponsoredKeywords.forEach(keyword => {
+        const span = document.createElement("span");
+        span.textContent = keyword;
+        span.className = "bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded";
+        nonSponsorBox.appendChild(span);
+      });
+    }
+
 
     function showLoading() {
       document.getElementById("loadingBar").classList.remove("hidden");
@@ -290,25 +413,65 @@
 
     // 초기 렌더
     renderFairLinks();
+    renderKeywordTags();
 
     function updateProgress(current, total) {
-      const percent = (current / total) * 100;
+      const percent = (current / total) * progressSplit.analysis;
       document.getElementById("loadingBar").classList.remove("hidden");
       document.getElementById("loadingBar").firstElementChild.style.width = `${percent}%`;
     }
 
+    function updateOcrProgress(current, total) {
+      const percent = progressSplit.ocr > 0
+        ? progressSplit.analysis + (current / total) * progressSplit.ocr
+        : 100;
+      document.getElementById("loadingBar").firstElementChild.style.width = `${percent}%`;
+    }
+
+    let progressSplit = { analysis: 70, ocr: 30 }; // 기본값
+
     let currentViewMode = 'list';
     let globalPostData = []; 
 
+    function setProgressSplit(useDetailedCheck) {
+      progressSplit = useDetailedCheck
+        ? { analysis: 70, ocr: 30 }
+        : { analysis: 100, ocr: 0 };
+    }
     // 포스트 렌더링
     function renderPosts(posts) {
       //console.log("📦 renderPosts 진입 - 현재 보기 모드:", currentViewMode);
 
       const list = document.getElementById("postList");
       list.innerHTML = "";
+      console.log('asd');
 
-      const emptyMsg = document.getElementById("emptyMessage");
-      if (emptyMsg) emptyMsg.remove();
+      if (posts.length === 0) {
+        document.getElementById("emptyMessage").classList.remove("hidden");
+      } else {
+        document.getElementById("emptyMessage").classList.add("hidden");
+      }
+
+      function highlightSponsoredKeywords(text) {
+        if (!text) return "";
+        let safeText = text; // 변형 없이 시작
+        sponsoredKeywords.forEach(keyword => {
+          const pattern = new RegExp(`(${keyword})`, "gi");
+          safeText = safeText.replace(pattern, '<mark class="bg-yellow-200">$1</mark>');
+        });
+        return safeText;
+      }
+
+      function highlightNonSponsoredKeywords(text) {
+        if (!text) return "";
+        let safeText = text; // 변형 없이 시작
+        nonSponsoredKeywords.forEach(keyword => {
+          const pattern = new RegExp(`(${keyword})`, "gi");
+          safeText = safeText.replace(pattern, '<mark class="bg-yellow-200">$1</mark>');
+        });
+        return safeText;
+      }
+
 
       posts.forEach(post => {
         const hasFair = post.fair_trade_img_url;
@@ -326,8 +489,8 @@
           imageSrc = "https://xn--939au0g4vj8sq.net/_sp/wgs.php?ctf=MzE4MDI0fDE3NDEzNDd8YWRtXzI5MzI4Nnw4NjgxMXwyMDI1MDUxNg==";
         }
 
-        if (!useFairImage && imageSrc.includes("type=w") && imageSrc.includes("_blur")) {
-          imageSrc = imageSrc.replace(/type=w\d+_blur/, 'type=w800');
+        if (!useFairImage && imageSrc.includes("type=w") && imageSrc.includes("_blur")) {          
+          imageSrc = imageSrc.replace(/type=w\d+_blur/, "type=w800").replace(/([?&])type=w\d+_blur/, "$1type=w800"); // 쿼리도 포함 처리
         }
 
         const BASE_URL = isTestMode ? "http://localhost:3000" : "https://fairblog.onrender.com";
@@ -339,8 +502,15 @@
         const tagList = [];
         const tagTextsForFilter = [];
 
-        const lowerText = (post.first_text_block || "").toLowerCase();
+        const lowerTitle = (post.title || "").toLowerCase();
+        const lowerText = (post.first_100_chars || "").toLowerCase();
         const lowerOcr = (post.first_ocr_text || "").toLowerCase();
+
+        const hasSponsoredT = isSponsored(lowerText) || isSponsored(lowerTitle);
+        const hasSponsoredO = isSponsored(lowerOcr);
+
+        const hasNonSponsoredT = isNonSponsored(lowerText) || isNonSponsored(lowerTitle);
+        const hasNonSponsoredO = isNonSponsored(lowerOcr);
 
         if (hasFair) {
           if (post.fair_trade_img_position === 1) {
@@ -350,10 +520,13 @@
             tagList.push({ text: "정책 위반 (공정위 이미지)", class: "bg-red-100 text-red-800" });
             tagTextsForFilter.push("정책 위반");
           }
-        } else if (fairTextRegex.test(lowerText)) {
+        } else if (hasNonSponsoredT || hasNonSponsoredO) {
+          tagList.push({ text: "내돈내산", class: "bg-blue-100 text-blue-800" });
+          tagTextsForFilter.push("내돈내산");
+        } else if (hasSponsoredT) {
           tagList.push({ text: "정책 지킴 (텍스트)", class: "bg-green-100 text-green-800" });
           tagTextsForFilter.push("정책 지킴");
-        } else if (fairTextRegex.test(lowerOcr)) {
+        } else if (hasSponsoredO) {
           tagList.push({ text: "정책 지킴 (이미지 OCR)", class: "bg-green-100 text-green-800" });
           tagTextsForFilter.push("정책 지킴");
         } else if (post.first_image_url?.includes("storep-phinf")) {
@@ -400,9 +573,18 @@
         const content = document.createElement("div");
         content.className = "flex-1 overflow-hidden";
 
+        const hasSponsoredInTitle = isSponsored(lowerTitle);
+        const hasNonSponsoredInTitle = isNonSponsored(lowerTitle);
+
         const title = document.createElement("h2");
         title.className = "font-semibold text-sm leading-snug line-clamp-2 overflow-hidden";
-        title.innerHTML = `<a href="${post.url}" target="_blank">${post.title}</a>`;
+        title.innerHTML = `<a href="${post.url}" target="_blank">${
+          hasSponsoredInTitle
+            ? highlightSponsoredKeywords(post.title)
+            : hasNonSponsoredInTitle
+              ? highlightNonSponsoredKeywords(post.title)
+              : post.title
+        }</a>`;
 
         const date = document.createElement("p");
         date.className = "text-sm text-gray-500 whitespace-nowrap overflow-hidden text-ellipsis";
@@ -420,6 +602,29 @@
           summary.style.lineHeight = "1.2rem";
           summary.style.maxHeight = "2.4rem";
           summary.textContent = post.first_100_chars;
+
+          console.log("🟡 디버깅 시작 — 하이라이트 조건 체크");
+          console.log("📌 tagTextsForFilter:", tagTextsForFilter);
+          console.log("📌 tagList (텍스트 목록):", tagList.map(t => t.text));
+          console.log("📌 post.first_100_chars:", post.first_100_chars);
+
+          const hasPolicyText = tagTextsForFilter.includes("정책 지킴") && tagList.some(t => t.text.includes("텍스트"));
+          const hasNonSponText = tagTextsForFilter.includes("내돈내산");
+
+          console.log("✅ 정책 지킴 + 텍스트 조건:", hasPolicyText);
+          console.log("✅ 내돈내산 + 텍스트 조건:", hasNonSponText);
+
+          if (hasPolicyText) {
+            console.log("🟢 하이라이트 적용: 정책 지킴 (텍스트)");
+            summary.innerHTML = highlightSponsoredKeywords(post.first_100_chars);
+          } else if (hasNonSponText) {
+            console.log("🔵 하이라이트 적용: 내돈내산 (텍스트)");
+            summary.innerHTML = highlightNonSponsoredKeywords(post.first_100_chars);
+          } else {
+            console.log("⚪ 하이라이트 없음: 기본 텍스트 출력");
+            summary.textContent = post.first_100_chars;
+          }
+          
           content.appendChild(summary);
         }
 
@@ -447,15 +652,21 @@
         "🔴 정책 위반 (공정위 이미지)": [],
         "🟢 정책 지킴 (텍스트)": [],
         "🟢 정책 지킴 (이미지 OCR)": [],
+        "🔵 내돈내산": [],
         "⚪ 불분명 (스티커)": [],
         "⚪ 불분명": []
       };
 
+
       posts.forEach(post => {
-        const lowerText = (post.first_text_block || "").toLowerCase();
+        const lowerTitle = (post.title || "").toLowerCase();
+        const lowerText = (post.first_100_chars || "").toLowerCase();
         const lowerOcr = (post.first_ocr_text || "").toLowerCase();
-        const ocrMatch = fairTextRegex.test(lowerOcr);
-        const textMatch = fairTextRegex.test(lowerText);
+
+        const hasSponsoredT = isSponsored(lowerText) || isSponsored(lowerTitle);
+        const hasNonSponsoredT = isNonSponsored(lowerText) || isNonSponsored(lowerTitle);
+        const hasSponsoredO = isSponsored(lowerOcr);
+        const hasNonSponsoredO = isNonSponsored(lowerOcr);
 
         if (post.fair_trade_img_url) {
           if (post.fair_trade_img_position === 1) {
@@ -463,9 +674,11 @@
           } else {
             groups["🔴 정책 위반 (공정위 이미지)"].push(post);
           }
-        } else if (textMatch) {
+        } else if (hasNonSponsoredT || hasNonSponsoredO) {
+          groups["🔵 내돈내산"].push(post);
+        } else if (hasSponsoredT) {
           groups["🟢 정책 지킴 (텍스트)"].push(post);
-        } else if (ocrMatch) {
+        } else if (hasSponsoredO) {
           groups["🟢 정책 지킴 (이미지 OCR)"].push(post);
         } else if (post.first_image_url?.includes("storep-phinf")) {
           groups["⚪ 불분명 (스티커)"].push(post);
@@ -519,6 +732,49 @@
       });
     }
 
+    async function runOcrForPost(post) {
+      let imageUrl = post.first_image_url;
+      //console.log("runOcrForPost imageUrl: ", imageUrl);
+      if (!imageUrl || !imageUrl.startsWith("http")) {
+        post.first_ocr_text = "";
+        return;
+      }
+
+      if (/w\d+_blur/.test(imageUrl)) {
+        imageUrl = imageUrl.replace(/w\d+_blur/, "w800");
+        //console.log("🔧 블러 제거된 이미지 주소로 교체:", imageUrl);
+      } else {
+        //console.log("🔧 이미지에 wXX_blur 없음:", imageUrl);
+      }
+
+      // ✅ 프록시 URL 구성
+      const BASE_URL = location.hostname.includes("localhost") ? "http://localhost:3000" : "https://fairblog.onrender.com";
+      const proxyUrl = `${BASE_URL}/proxy?url=${encodeURIComponent(imageUrl)}`;
+      console.log(`🧩 OCR 대상 프록시 이미지: ${proxyUrl}`);
+
+
+      const startTime = performance.now();
+
+      try {
+        //const { data: { text } } = await Tesseract.recognize(proxyUrl, 'kor', {
+        //  logger: m => console.log(`[OCR] ${post.title}: ${m.status} (${Math.round(m.progress * 100)}%)`)
+        //});
+        const { data: { text } } = await Tesseract.recognize(proxyUrl, 'kor');
+
+
+        const endTime = performance.now();
+        const elapsed = (endTime - startTime).toFixed(1);
+
+        post.first_ocr_text = text.replace(/\s+/g, "");
+        console.log(`✅ OCR 완료: ${post.title} (${elapsed}ms)`);
+        console.log(`🔍 OCR 결과:\n${post.first_ocr_text}\n`);
+      } catch (err) {
+        const failTime = performance.now();
+        const elapsed = (failTime - startTime).toFixed(1);
+        console.error(`❌ OCR 실패: ${post.title} (${elapsed}ms)`, err);
+        post.first_ocr_text = "";
+      }
+    }
 
     function setViewMode(mode) {
       currentViewMode = mode;
@@ -560,8 +816,12 @@
 
 
     async function fetchBlogPosts() {
+      let ocrTotal = 0;
+      let ocrCompleted = 0;
       const blogId = document.getElementById("blogId").value.trim();
       const pageNum = parseInt(document.getElementById("pageNum").value || "1");
+      const useDetailedCheck = document.getElementById("detailedCheck").checked;
+      setProgressSplit(useDetailedCheck);
 
       if (!blogId) {
         alert("네이버 블로그 ID를 입력해주세요.");
@@ -571,9 +831,18 @@
       // 👉 버튼 비활성화
       startBtn.disabled = true;
       startBtn.classList.add("opacity-50", "cursor-not-allowed");
+      
+
+      const loadingText = document.getElementById("loadingText");
+      const loadingBarFill = document.getElementById("loadingBar").firstElementChild;
+
+      // ✅ 렌더 서버 깨우기 메시지
+      loadingText.textContent = "☁️ 서버를 준비 중입니다... (최대 20초 정도 소요될 수 있어요)";
+      loadingBarFill.style.width = `0%`;
+      document.getElementById("loadingText").classList.remove("hidden");
+      document.getElementById("loadingBar").classList.remove("hidden");
 
       showLoading();
-      const loadingText = document.getElementById("loadingText");
       const domainList = Object.keys(fairDomainAliasMap);
       const BASE_URL = isTestMode ? "http://localhost:3000" : "https://fairblog.onrender.com";
       const analyzeSingleUrl = `${BASE_URL}/analyze_single`;
@@ -584,7 +853,6 @@
         const startTime = performance.now();
 
         // 📥 1단계: 서버에서 포스트 리스트 받아오기
-        loadingText.textContent = "📥 네이버 블로그 글 목록 불러오는 중...";
         const res = await fetch(postListUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -594,6 +862,7 @@
         if (!res.ok) throw new Error("네이버 블로그 목록 요청 실패");
         const data = await res.json();
         const items = data.items || [];
+
 
         if (items.length === 0) {
           alert("📭 게시글이 없습니다.");
@@ -606,7 +875,7 @@
 
         // 🔁 2단계: 병렬 분석 (n개씩)
         const allPosts = new Array(urls.length); // 결과 저장용 (정렬 유지)
-        const batchSize = 8;
+        const batchSize = 24;
         let completed = 0;
 
         for (let i = 0; i < urls.length; i += batchSize) {
@@ -624,11 +893,46 @@
             })
               .then(r => r.ok ? r.json() : null)
               .catch(() => null)
-              .then(result => {
+              .then(async result => {
                 allPosts[realIdx] = result; // ✅ 순서에 맞춰 저장
                 completed++;
                 updateProgress(completed, urls.length);
                 loadingText.textContent = `⏳ ${completed} / ${urls.length} 포스트 분석 중...`;
+
+                
+                console.log(`📝 글 제목: ${result.title}`);
+
+                // ✅ 공정위 이미지가 없을 때만 텍스트/OCR 검사
+                if (!result.fair_trade_img_url) {
+                  const lowerTitle = (result.title || "").toLowerCase();
+                  const lowerText = (result.first_text_block || "").toLowerCase();
+                  const imageUrl = result.first_image_url || "";
+                  const isMapImage = imageUrl.includes("static.map/v2/map/staticmap.bin");
+
+                  if (isMapImage) {
+                    result.first_ocr_text = "";
+                  } else if (isSponsored(lowerText) || isSponsored(lowerTitle)) {
+                    result.first_ocr_text = "";
+                  } else if (isNonSponsored(lowerText) || isNonSponsored(lowerTitle)) {
+                    result.first_ocr_text = "";
+                  } else if (useDetailedCheck) {
+                    // ✅ 상세 검색 ON → OCR 실행
+                    ocrTotal++;
+                    try {
+                      await runOcrForPost(result);
+                    } catch (err) {
+                      console.warn("❌ OCR 실패", err);
+                    } finally {
+                      ocrCompleted++;
+                      updateOcrProgress(ocrCompleted, ocrTotal);
+                      loadingText.textContent = `📦 포스트 분석 완료 → 📝 이미지 문구 확인 중 (${ocrCompleted} / ${ocrTotal})`;
+                    }
+                  } else {
+                    // ✅ 상세 검색 OFF → 이미지 검사 생략
+                    result.first_ocr_text = "";
+                    console.log("🔇 OCR 생략됨 (상세 검색 OFF)");
+                  }
+                }
               });
           });
 
@@ -939,6 +1243,27 @@
         document.getElementById('imageModal').classList.add('hidden');
       }
     });
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const check = document.getElementById("detailedCheck");
+
+      check.addEventListener("change", () => {
+        if (check.checked) {
+          alert(
+            "✅ 상세 검색이 활성화되었습니다.\n\n" +
+            "공정위 도메인 이미지가 없는 경우,\n대표 이미지(첫 번째 이미지) 속 문구까지 자동으로 검사합니다.\n\n" +
+            "텍스트에 명시되지 않은 스티커(예: '제공받음')가 포함된 경우에도 일부 감지할 수 있습니다.\n\n" +
+            "단, 이미지의 글자가 너무 작거나 특이한 글꼴인 경우\n정확한 인식이 어려울 수 있습니다."
+          );
+          } else {
+          alert(
+            "ℹ️ 상세 검색이 비활성화되었습니다.\n\n" +
+            "공정위 도메인 이미지와 텍스트만 분석합니다."
+          );         
+        }
+      });
+    });
+
 
   </script>
 </body>
