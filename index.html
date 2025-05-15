@@ -71,11 +71,11 @@
     <div class="mb-2 text-sm font-semibold text-gray-700">🧭 정렬 방식</div>
     <div id="tagFilter" class="mb-4 flex flex-nowrap gap-2 overflow-x-auto whitespace-nowrap text-sm">
       <button onclick="filterByTag('전체')" class="px-3 py-1 rounded border bg-gray-100 text-gray-800 hover:bg-gray-200">전체</button>
-      <button onclick="filterByTag('공정위 정책 지킴')" class="px-3 py-1 rounded border bg-green-100 text-green-800 hover:bg-green-200">공정위 정책 지킴</button>
-      <button onclick="filterByTag('공정위 정책 위반')" class="px-3 py-1 rounded border bg-red-100 text-red-800 hover:bg-red-200">공정위 정책 위반</button>
-      <button onclick="filterByTag('스티커 있는 글')" class="px-3 py-1 rounded border bg-yellow-100 text-yellow-800 hover:bg-yellow-200">스티커 있는 글</button>
-      <button onclick="filterByTag('스티커 없는 글')" class="px-3 py-1 rounded border bg-gray-200 text-gray-800 hover:bg-gray-300">스티커 없는 글</button>
+      <button onclick="filterByTag('정책 지킴')" class="px-3 py-1 rounded border bg-green-100 text-green-800 hover:bg-green-200">정책 지킴</button>
+      <button onclick="filterByTag('정책 위반')" class="px-3 py-1 rounded border bg-red-100 text-red-800 hover:bg-red-200">정책 위반</button>
+      <button onclick="filterByTag('불분명')" class="px-3 py-1 rounded border bg-gray-200 text-gray-800 hover:bg-gray-300">불분명</button>
     </div>
+
 
     <!-- 보기 방식 -->
     <div class="mb-2 text-sm font-semibold text-gray-700">🖼 보기 방식</div>
@@ -211,6 +211,14 @@
       "mateb.kr": "기타체험단"          
     };
 
+    const fairTextKeywords = [
+      "공정거래위원회",
+      "소정의\\s*원고료",
+      "제공받아",
+      "광고"
+    ];
+    const fairTextRegex = new RegExp(fairTextKeywords.join("|"), "i");
+
     function getDomainAlias(imageUrl) {
       for (const domain in fairDomainAliasMap) {
         if (imageUrl.includes(domain)) {
@@ -331,22 +339,29 @@
         const tagList = [];
         const tagTextsForFilter = [];
 
+        const lowerText = (post.first_text_block || "").toLowerCase();
+        const lowerOcr = (post.first_ocr_text || "").toLowerCase();
+
         if (hasFair) {
           if (post.fair_trade_img_position === 1) {
-            tagList.push({ text: "공정위 정책 지킴", class: "bg-green-100 text-green-800" });
-            tagTextsForFilter.push("공정위 정책 지킴");
+            tagList.push({ text: "정책 지킴 (공정위 이미지)", class: "bg-green-100 text-green-800" });
+            tagTextsForFilter.push("정책 지킴");
           } else {
-            tagList.push({ text: "공정위 정책 위반", class: "bg-red-100 text-red-800" });
-            tagTextsForFilter.push("공정위 정책 위반");
+            tagList.push({ text: "정책 위반 (공정위 이미지)", class: "bg-red-100 text-red-800" });
+            tagTextsForFilter.push("정책 위반");
           }
+        } else if (fairTextRegex.test(lowerText)) {
+          tagList.push({ text: "정책 지킴 (텍스트)", class: "bg-green-100 text-green-800" });
+          tagTextsForFilter.push("정책 지킴");
+        } else if (fairTextRegex.test(lowerOcr)) {
+          tagList.push({ text: "정책 지킴 (이미지 OCR)", class: "bg-green-100 text-green-800" });
+          tagTextsForFilter.push("정책 지킴");
+        } else if (post.first_image_url?.includes("storep-phinf")) {
+          tagList.push({ text: "불분명 (스티커)", class: "bg-gray-100 text-gray-700" });
+          tagTextsForFilter.push("불분명");
         } else {
-          if (post.first_image_url?.includes("storep-phinf")) {
-            tagList.push({ text: "스티커 있는 글", class: "bg-yellow-100 text-yellow-800" });
-            tagTextsForFilter.push("스티커 있는 글");
-          } else {
-            tagList.push({ text: "스티커 없는 글", class: "bg-gray-200 text-gray-800" });
-            tagTextsForFilter.push("스티커 없는 글");
-          }
+          tagList.push({ text: "불분명", class: "bg-gray-200 text-gray-800" });
+          tagTextsForFilter.push("불분명");
         }
 
         // 카드 요소 생성
@@ -427,35 +442,55 @@
 
     function renderTxt(posts) {
       // 공정위 정책 위반 태그가 붙은 포스트만 추출
-      const suspiciousPosts = posts.filter(p => {
-        if (!p.fair_trade_img_url) return false; // 공정위 이미지 없음 → 패스
-        return p.fair_trade_img_position !== 1;  // 공정위 이미지가 첫 번째가 아님
+      const groups = {
+        "🟢 정책 지킴 (공정위 이미지)": [],
+        "🔴 정책 위반 (공정위 이미지)": [],
+        "🟢 정책 지킴 (텍스트)": [],
+        "🟢 정책 지킴 (이미지 OCR)": [],
+        "⚪ 불분명 (스티커)": [],
+        "⚪ 불분명": []
+      };
+
+      posts.forEach(post => {
+        const lowerText = (post.first_text_block || "").toLowerCase();
+        const lowerOcr = (post.first_ocr_text || "").toLowerCase();
+        const ocrMatch = fairTextRegex.test(lowerOcr);
+        const textMatch = fairTextRegex.test(lowerText);
+
+        if (post.fair_trade_img_url) {
+          if (post.fair_trade_img_position === 1) {
+            groups["🟢 정책 지킴 (공정위 이미지)"].push(post);
+          } else {
+            groups["🔴 정책 위반 (공정위 이미지)"].push(post);
+          }
+        } else if (textMatch) {
+          groups["🟢 정책 지킴 (텍스트)"].push(post);
+        } else if (ocrMatch) {
+          groups["🟢 정책 지킴 (이미지 OCR)"].push(post);
+        } else if (post.first_image_url?.includes("storep-phinf")) {
+          groups["⚪ 불분명 (스티커)"].push(post);
+        } else {
+          groups["⚪ 불분명"].push(post);
+        }
       });
 
-      // 도메인 기준 그룹핑
-      const grouped = {};
+      let txt = `📄 [공정위 표시 판단 요약 보고서]\n총 ${posts.length}건 분석\n\n`;
 
-      suspiciousPosts.forEach(post => {
-        const domainAlias = getDomainAlias(post.fair_trade_img_url || post.first_image_url || "");
-        if (!grouped[domainAlias]) grouped[domainAlias] = [];
-        grouped[domainAlias].push(post);
-      });
+      for (const [tag, items] of Object.entries(groups)) {
+        if (items.length === 0) continue;
 
-      // 텍스트 구성
-      let txt = "📌 [공정위 정책 위반 의심 게시글]\n";
-      txt += `총 ${suspiciousPosts.length}건\n`;
-      txt += "────────────────────────────\n\n";
+        txt += `${tag} - ${items.length}건\n`;
+        txt += "───────────────────────\n";
 
-      for (const domainAlias of Object.keys(grouped)) {
-        txt += `🔸 ${domainAlias}\n`;
-        txt += "────────────────\n";
-
-        grouped[domainAlias].forEach((p, idx) => {
-          txt += `${idx + 1}) ${p.title || "(제목 없음)"}\n`;
-          txt += `   📎 링크: ${p.url}\n`;
-          txt += `   🖼️ 위치: ${p.fair_trade_img_position}번째\n`;
-          txt += `   📅 작성일: ${p.date || "알 수 없음"}\n\n`;
+        items.forEach((post, idx) => {
+          txt += `${idx + 1}) ${post.title || "(제목 없음)"}\n`;
+          txt += `   📎 링크: ${post.url}\n`;
+          if (post.fair_trade_img_position)
+            txt += `   🖼️ 위치: ${post.fair_trade_img_position}번째\n`;
+          txt += `   📅 작성일: ${post.date || "알 수 없음"}\n\n`;
         });
+
+        txt += "\n";
       }
 
       document.getElementById("reportContent").innerText = txt;
