@@ -180,6 +180,7 @@
     const fairDomainAliasMap = {
       "강남맛집.net": "강남맛집",        
       "xn--939au0g4vj8sq.net": "강남맛집",        
+      "%EA%B0%95%EB%82%A8%EB%A7%9B%EC%A7%91.net": "강남맛집",        
       "blogmall.net": "미블",        
       "d3i7y4ugnppb9p.cloudfront.net": "슈퍼멤버스",        
       "www.reviewnote.co.kr": "리뷰노트",        
@@ -289,10 +290,11 @@
     }
 
     let currentViewMode = 'list';
+    let globalPostData = []; 
 
     // 포스트 렌더링
     function renderPosts(posts) {
-      console.log("📦 renderPosts 진입 - 현재 보기 모드:", currentViewMode);
+      //console.log("📦 renderPosts 진입 - 현재 보기 모드:", currentViewMode);
 
       const list = document.getElementById("postList");
       list.innerHTML = "";
@@ -302,7 +304,7 @@
 
       posts.forEach(post => {
         const hasFair = post.fair_trade_img_url;
-        const useFairImage = hasFair && post.fair_trade_img_position === 1;
+        const useFairImage = hasFair;// && post.fair_trade_img_position === 1;
         const hasSticker = post.first_image_url?.includes("storep-phinf");
 
         // ✅ 우선순위: 공정위 상단 이미지 > 스티커 이미지 > 일반 썸네일
@@ -419,10 +421,6 @@
         wrapper.appendChild(content);
         li.appendChild(wrapper);
         list.appendChild(li);
-
-        if (post.first_100_chars) {
-          console.log("✏️ 요약 생성 조건 확인:", currentViewMode, post.title);
-        }
       });
     }
 
