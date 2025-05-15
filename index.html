@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <title>공정위 문구 검사기 - 페어블로그</title>
-  <meta name="description" content="블로거를 위한 공정위 문구 검사기! 광고 표시 의무를 간편하게 체크하세요.">
-  <meta name="keywords" content="공정위 문구 검사, 광고 문구 분석, 블로그 체험단, SNS 광고, 표시광고 심사 지침">
+<meta name="description" content="공정위 가이드라인에 따라 네이버 블로그 체험단 베너를 검사하는 무료 도구입니다. 네이버 블로그 ID를 입력하면 검사 결과가 아래에 표시됩니다.">
+  <meta name="keywords" content="공정위 문구 검사, 광고 문구 분석, 네이버 블로그 체험단, SNS 광고, 표시광고 심사 지침">
   <meta name="author" content="yongwon cho">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="index, follow">
@@ -24,11 +24,19 @@
 </head>
 <body class="bg-gray-100 text-gray-800 p-6">
   <div class="max-w-4xl mx-auto">
-    <h1 class="text-2xl font-bold mb-4">📝 공정위 문구 검사기 - 페어블로그</h1>
+    <section class="text-center text-gray-700 my-6">
+      <h1 onclick="location.reload()" class="text-2xl font-extrabold text-blue-600 hover:text-blue-800 transition-colors duration-200 text-center block cursor-pointer">
+        공정위 문구 검사기 - 페어블로그
+      </h1>    
+      <p class="text-base">
+        네이버 블로그에 삽입한 공정위 이미지가 가이드라인에 부합하는지 자동으로 점검해보세요.<br>
+        네이버 블로그 ID를 입력하고 [검사 시작]을 클릭하면 검사 결과가 아래에 표시됩니다.
+      </p>
+    </section>
     
     <!-- 블로그 ID 입력 -->
     <div class="mb-6">
-      <label for="blogId" class="block text-sm font-medium text-gray-700">블로그 ID 입력:</label>
+      <label for="blogId" class="block text-sm font-medium text-gray-700">네이버 블로그 ID 입력:</label>
       <div class="flex mt-1">
         <input type="text" id="blogId" class="flex-1 min-w-[120px] px-3 py-2 border rounded text-sm" placeholder="예: blogpeople" />
         <div class="flex items-center gap-1 text-sm">
@@ -89,7 +97,7 @@
     <ul id="postList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
       <!-- 초기 안내 메시지 -->
       <li id="emptyMessage" class="col-span-full text-center text-gray-500 py-10">
-        🔍 블로그 ID를 입력하고 [검사 시작]을 누르면 이곳에 결과가 표시됩니다.
+        🔍 결과가 이곳에 표시됩니다. 상단에서 블로그 ID를 입력하세요.
       </li>
     </ul>
 
@@ -164,7 +172,7 @@
       modeLabel.classList.remove("bg-gray-500");
       modeLabel.classList.add("bg-yellow-600");
     } else {
-      modeLabel.textContent = "✅ 최종 빌드 (20250515_1000)";
+      modeLabel.textContent = "✅ 최종 빌드 (20250515_1010)";
       modeLabel.classList.remove("bg-gray-500");
       modeLabel.classList.add("bg-green-700");
     }
@@ -523,7 +531,7 @@
       const pageNum = parseInt(document.getElementById("pageNum").value || "1");
 
       if (!blogId) {
-        alert("블로그 ID를 입력해주세요.");
+        alert("네이버 블로그 ID를 입력해주세요.");
         return;
       }
       
@@ -543,7 +551,7 @@
         const startTime = performance.now();
 
         // 📥 1단계: 서버에서 포스트 리스트 받아오기
-        loadingText.textContent = "📥 블로그 글 목록 불러오는 중...";
+        loadingText.textContent = "📥 네이버 블로그 글 목록 불러오는 중...";
         const res = await fetch(postListUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -611,7 +619,7 @@
 
       } catch (err) {
         console.error("분석 오류:", err);
-        alert("⚠️ 블로그 분석 중 오류가 발생했습니다.");
+        alert("⚠️ 네이버 블로그 분석 중 오류가 발생했습니다.");
       } finally {
         
         // 👉 버튼 다시 활성화
