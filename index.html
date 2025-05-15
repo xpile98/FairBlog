@@ -234,7 +234,7 @@
       modeLabel.classList.remove("bg-gray-500");
       modeLabel.classList.add("bg-yellow-600");
     } else {
-      modeLabel.textContent = "✅ 최종 빌드 (20250515_2130)";
+      modeLabel.textContent = "✅ 최종 빌드 (20250515_1000)";
       modeLabel.classList.remove("bg-gray-500");
       modeLabel.classList.add("bg-green-700");
     }
@@ -420,16 +420,20 @@
     renderKeywordTags();
 
     function updateProgress(current, total) {
-      const percent = (current / total) * progressSplit.analysis;
+      const percent = (current / total) * 70;
       document.getElementById("loadingBar").classList.remove("hidden");
       document.getElementById("loadingBar").firstElementChild.style.width = `${percent}%`;
+
+      // ✅ 메시지 여기서만
+      loadingText.textContent = `⏳ ${current} / ${total} 포스트 분석 중...`;
     }
 
     function updateOcrProgress(current, total) {
-      const percent = progressSplit.ocr > 0
-        ? progressSplit.analysis + (current / total) * progressSplit.ocr
-        : 100;
+      const percent = 70 + (current / total) * 30;
       document.getElementById("loadingBar").firstElementChild.style.width = `${percent}%`;
+
+      // ✅ 이건 주석 처리 or 제거
+      // loadingText.textContent = `📦 포스트 분석 완료 → ...`;
     }
 
     let progressSplit = { analysis: 70, ocr: 30 }; // 기본값
@@ -941,6 +945,10 @@
           });
 
           await Promise.allSettled(tasks);
+          // ✅ 2. OCR 시작 전에 메시지 표시 (여기 추가!)
+          if (useDetailedCheck && ocrTotal > 0) {
+            loadingText.textContent = `📦 포스트 분석 완료 → 📝 이미지 문구 확인 중 (0 / ${ocrTotal})`;
+          }
         }
 
         // 🟢 3단계: 결과 렌더링
