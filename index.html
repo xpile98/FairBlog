@@ -79,17 +79,33 @@
           </select>
         </div>
 
-        <!-- OCR 토글 -->
-        <div class="flex items-center gap-4">
-          <label for="detailedCheck" class="text-gray-700 whitespace-nowrap">
-            이미지 문구 분석 <span class="text-gray-400 text-xs">(몇 초 소요)</span>
-          </label>
-          <label class="relative inline-flex items-center cursor-pointer">
-            <input type="checkbox" id="detailedCheck" class="sr-only peer" checked />
-            <div class="w-10 h-5 bg-gray-300 rounded-full peer-checked:bg-blue-600 transition-colors"></div>
-            <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white border rounded-full transition-transform peer-checked:translate-x-5"></div>
-          </label>
+        <!-- OCR + 다중 페이지 분석 토글 -->
+        <div class="flex items-center gap-8">
+          <!-- OCR 토글 -->
+          <div class="flex items-center gap-4">
+            <label for="detailedCheck" class="text-gray-700 whitespace-nowrap">
+              이미지 문구 분석 <span class="text-gray-400 text-xs">(몇 초 소요)</span>
+            </label>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="detailedCheck" class="sr-only peer" checked />
+              <div class="w-10 h-5 bg-gray-300 rounded-full peer-checked:bg-green-600 transition-colors"></div>
+              <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white border rounded-full transition-transform peer-checked:translate-x-5"></div>
+            </label>
+          </div>
+
+          <!-- 연속 분석 토글 -->
+          <div class="flex items-center gap-4">
+            <label for="multiPageCheck" class="text-gray-700 whitespace-nowrap">
+              1페이지부터 연속 분석
+            </label>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="multiPageCheck" class="sr-only peer" />
+              <div class="w-10 h-5 bg-gray-300 rounded-full peer-checked:bg-green-600 transition-colors"></div>
+              <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white border rounded-full transition-transform peer-checked:translate-x-5"></div>
+            </label>
+          </div>
         </div>
+
 
         <!-- 검사 시작 버튼 -->
         <div class="flex-1 min-w-[120px]">
@@ -152,10 +168,27 @@
 
     <!-- 결과 표시: 요약 보기 모드에서만 표시 -->
     <section id="summaryBox" class="mt-8 hidden">
-      <h2 class="text-lg font-semibold mb-2">📄 요약 보기</h2>
+      <div class="flex items-center justify-between mb-2">
+        <h2 class="text-lg font-semibold">📄 요약 보기</h2>
+        <div class="flex items-center space-x-4">
+          <label class="text-sm flex items-center space-x-1">
+            <input type="checkbox" id="violationOnlyCheckbox" onchange="renderTxt(window.latestPosts)">
+            <span>🔴 위반만 보기</span>
+          </label>
+          <label class="text-sm flex items-center space-x-1">
+            <span>🌐 도메인 필터:</span>
+            <select id="domainFilterSelect" class="border rounded p-1 text-sm" onchange="renderTxt(window.latestPosts)">
+              <option value="all">전체</option>
+            </select>
+          </label>
+        </div>
+      </div>
       <pre id="reportContent" class="w-full p-3 bg-gray-100 border rounded text-sm whitespace-pre-wrap h-64 overflow-auto"></pre>
       <button onclick="downloadTxt()" class="mt-2 bg-green-600 text-white px-4 py-2 rounded">TXT 다운로드</button>
+      <button onclick="copyToClipboard()" class="bg-blue-600 text-white px-4 py-2 rounded">클립보드에 복사</button>
     </section>
+
+
 
     
     <!-- 결과 표시 -->
@@ -680,7 +713,20 @@
 
 
     function renderTxt(posts) {
-      // 공정위 정책 위반 태그가 붙은 포스트만 추출
+      // 최신 포스트 캐시
+      window.latestPosts = posts;
+
+      // 사용자 ID를 입력란에서 가져오기
+      const blogId = (document.getElementById("blogId")?.value || "").trim() || "익명 사용자";
+      const now = new Date();
+      const dateStr = now.toISOString().slice(0, 10); // yyyy-mm-dd
+      const timeStr = now.toTimeString().slice(0, 8); // HH:MM:SS
+
+      const multiPageMode = document.getElementById("multiPageCheck")?.checked;
+      const pageNum = parseInt(document.getElementById("pageNum")?.value || "1", 10);
+      const totalPages = 20; // 고정되어 있으므로 상수로 지정
+
+
       const groups = {
         "🟢 정책 지킴 (공정위 이미지)": [],
         "🔴 정책 위반 (공정위 이미지)": [],
@@ -691,7 +737,7 @@
         "⚪ 불분명": []
       };
 
-
+      // 그룹 분류
       posts.forEach(post => {
         const lowerTitle = (post.title || "").toLowerCase();
         const lowerText = (post.first_100_chars || "").toLowerCase();
@@ -721,27 +767,94 @@
         }
       });
 
-      let txt = `📄 [공정위 표시 판단 요약 보고서]\n총 ${posts.length}건 분석\n\n`;
+      const showViolationOnly = document.getElementById("violationOnlyCheckbox")?.checked;
+      const selectedDomain = document.getElementById("domainFilterSelect")?.value || "all";
 
-      for (const [tag, items] of Object.entries(groups)) {
+      // tag 순서: 위반만 보기일 때는 🔴만, 아닐 때는 전체
+      const tagOrder = showViolationOnly
+        ? ["🔴 정책 위반 (공정위 이미지)"]
+        : [
+            "🟢 정책 지킴 (공정위 이미지)",
+            "🔴 정책 위반 (공정위 이미지)",
+            "🟢 정책 지킴 (텍스트)",
+            "🟢 정책 지킴 (이미지 OCR)",
+            "🔵 내돈내산",
+            "⚪ 불분명 (스티커)",
+            "⚪ 불분명"
+          ];
+
+      const pageLabel = multiPageMode
+        ? `1~${pageNum} / ${totalPages}`
+        : `${pageNum} / ${totalPages}`;
+
+      let txt = `🔍 공정위 문구 검사기 - 페어블로그 (https://xpile98.github.io/FairBlog)\n\n`;
+      txt += ` - 블로그 ID: ${blogId}\n`;
+      txt += ` - 페이지: ${pageLabel}\n`;
+      txt += ` - 검사일: ${dateStr} ${timeStr}\n\n`;
+      txt += `📄 [공정위 표시 판단 요약 보고서]\n`;
+      txt += ` - 총 ${posts.length}건 분석\n\n`;
+
+
+
+      // 도메인 목록 수집 (드롭다운 반영용)
+      const allDomains = new Set();
+
+      // 본문 생성
+      for (const tag of tagOrder) {
+        const items = groups[tag];
         if (items.length === 0) continue;
 
-        txt += `${tag} - ${items.length}건\n`;
-        txt += "───────────────────────\n";
-
-        items.forEach((post, idx) => {
-          txt += `${idx + 1}) ${post.title || "(제목 없음)"}\n`;
-          txt += `   📎 링크: ${post.url}\n`;
-          if (post.fair_trade_img_position)
-            txt += `   🖼️ 위치: ${post.fair_trade_img_position}번째\n`;
-          txt += `   📅 작성일: ${post.date || "알 수 없음"}\n\n`;
+        // 도메인 분류
+        const domainMap = {};
+        items.forEach(post => {
+          const domain = getDomainAlias(post.fair_trade_img_url || post.first_image_url || "");
+          allDomains.add(domain);
+          if (!domainMap[domain]) domainMap[domain] = [];
+          domainMap[domain].push(post);
         });
 
-        txt += "\n";
+        // 도메인별 출력
+        for (const [domain, domainPosts] of Object.entries(domainMap)) {
+          if (selectedDomain !== "all" && domain !== selectedDomain) continue;
+
+          txt += ` - ${tag} - ${domainPosts.length}건\n`;
+          txt += `   -> 체험단 도메인: ${domain} (${domainPosts.length}건)\n`;
+          txt += "───────────────────────\n";
+
+          domainPosts.forEach((post, idx) => {
+            txt += `${idx + 1}) ${post.title || "(제목 없음)"}\n`;
+            txt += `   📎 링크: ${post.url}\n`;
+            if (post.fair_trade_img_position)
+              txt += `   🖼️ 위치: ${post.fair_trade_img_position}번째\n`;
+            txt += `   📅 작성일: ${post.date || "알 수 없음"}\n\n`;
+          });
+
+          txt += "\n";
+        }
       }
 
+      // 보고서 출력
+      lastGeneratedReport = txt;  // 전역 변수에 저장
       document.getElementById("reportContent").innerText = txt;
+
+      // 드롭다운 업데이트
+      const select = document.getElementById("domainFilterSelect");
+      const existingOptions = Array.from(select.options).map(opt => opt.value);
+      const newDomains = [...allDomains].filter(domain => !existingOptions.includes(domain));
+      if (newDomains.length > 0) {
+        // 전체만 남기고 초기화
+        select.innerHTML = '<option value="all">전체</option>';
+        [...allDomains].sort().forEach(domain => {
+          const opt = document.createElement("option");
+          opt.value = domain;
+          opt.textContent = domain;
+          select.appendChild(opt);
+        });
+        select.value = selectedDomain; // 유지
+      }
     }
+
+    let lastGeneratedReport = "";  // 전역에 보고서 원본 저장
 
     function downloadTxt() {
       const content = document.getElementById("reportContent").innerText;
@@ -751,6 +864,20 @@
       a.download = "fairblog_report.txt";
       a.click();
     }
+
+    function copyToClipboard() {
+      if (!lastGeneratedReport) {
+        alert("❌ 복사할 보고서가 없습니다.");
+        return;
+      }
+
+      navigator.clipboard.writeText(lastGeneratedReport).then(() => {
+        alert("📋 보고서가 클립보드에 복사되었습니다!");
+      }).catch(err => {
+        alert("❌ 복사에 실패했습니다: " + err);
+      });
+    }
+
 
     function filterByTag(tag) {
       const posts = document.querySelectorAll("#postList li");
@@ -832,13 +959,6 @@
           : 'space-y-4';
       }
 
-      // 버튼 강조 스타일
-      ['btnListView', 'btnGridView', 'btnSummaryView'].forEach(id => {
-        document.getElementById(id).classList.remove("bg-blue-600", "text-white");
-      });
-      const activeBtn = document.getElementById(`btn${capitalize(mode)}View`);
-      activeBtn.classList.add("bg-blue-600", "text-white");
-
       // 🔁 다시 랜더링
       renderPosts(globalPostData);
     }
@@ -855,11 +975,17 @@
       const blogId = document.getElementById("blogId").value.trim();
       const pageNum = parseInt(document.getElementById("pageNum").value || "1");
       const useDetailedCheck = document.getElementById("detailedCheck").checked;
+      const multiPageMode = document.getElementById("multiPageCheck")?.checked;
+      const totalPages = multiPageMode ? pageNum : pageNum;
+
       setProgressSplit(useDetailedCheck);
 
       if (!blogId) {
         alert("네이버 블로그 ID를 입력해주세요.");
         return;
+      }
+      if (multiPageMode) {
+        alert(`📄 연속 분석 모드가 활성화되었습니다.\n\n1페이지부터 ${pageNum}페이지까지 순차 분석합니다.`);
       }
       
       // 👉 버튼 비활성화
@@ -886,24 +1012,29 @@
         // ⏱ 전체 시간 측정 시작
         const startTime = performance.now();
 
-        // 📥 1단계: 서버에서 포스트 리스트 받아오기
-        const res = await fetch(postListUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ blogId, pageNum })
-        });
+        // 📥 여러 페이지를 한 번에 분석
+        let allItems = [];
 
-        if (!res.ok) throw new Error("네이버 블로그 목록 요청 실패");
-        const data = await res.json();
-        const items = data.items || [];
+        for (let p = 1; p <= totalPages; p++) {
+          // 📥 1단계: 서버에서 포스트 리스트 받아오기
+          const res = await fetch(postListUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ blogId, pageNum: p })
+          });
+
+          if (!res.ok) throw new Error("네이버 블로그 목록 요청 실패");
+          const data = await res.json();
+          allItems.push(...(data.items || []));
+        }
 
 
-        if (items.length === 0) {
+        if (allItems.length === 0) {
           alert("📭 게시글이 없습니다.");
           return;
         }
 
-        const urls = items.map(item =>
+        const urls = allItems.map(item =>
           `https://m.blog.naver.com/${item.domainIdOrBlogId}/${item.logNo}`
         );
 
