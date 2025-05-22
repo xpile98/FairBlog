@@ -1086,21 +1086,23 @@
           });
 
           await Promise.allSettled(tasks);
-          await new Promise(resolve => setTimeout(resolve, 1500)); // 페이지 간 딜레이
+          await new Promise(resolve => setTimeout(resolve, 500)); // 페이지 간 딜레이
         }
 
-        // 🟡 OCR 단계 시작
-        for (let i = 0; i < ocrQueue.length; i++) {
-          try {
-            await runOcrForPost(ocrQueue[i]);
-          } catch (err) {
-            console.warn("❌ OCR 실패", err);
-          } finally {
-            ocrCompleted++;
-            updateOcrProgress(ocrCompleted, ocrQueue.length);
-            loadingText.textContent = `📦 이미지 문구 분석 중... (${ocrCompleted} / ${ocrQueue.length})`;
-          }
-        }
+        // 🟡 OCR 단계 시작 (병렬 처리)
+        const ocrTasks = ocrQueue.map((post, idx) =>
+          runOcrForPost(post)
+            .catch(err => {
+              console.warn(`❌ OCR 실패: ${post.title}`, err);
+            })
+            .finally(() => {
+              ocrCompleted++;
+              updateOcrProgress(ocrCompleted, ocrQueue.length);
+              loadingText.textContent = `📦 이미지 문구 분석 중... (${ocrCompleted} / ${ocrQueue.length})`;
+            })
+        );
+
+        await Promise.allSettled(ocrTasks);
 
         const filtered = allPosts.filter(p => p);
         globalPostData = filtered;
