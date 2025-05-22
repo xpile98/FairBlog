@@ -291,7 +291,7 @@
       modeLabel.classList.remove("bg-gray-500");
       modeLabel.classList.add("bg-yellow-600");
     } else {
-      modeLabel.textContent = "✅ 최종 빌드 (20250522_1430)";
+      modeLabel.textContent = "✅ 최종 빌드 (20250522_1530)";
       modeLabel.classList.remove("bg-gray-500");
       modeLabel.classList.add("bg-green-700");
     }
@@ -986,7 +986,7 @@
       let ocrQueue = [];
       let ocrCompleted = 0;
 
-      const blogId = document.getElementById("blogId").value.trim();
+      let blogIdInput = document.getElementById("blogId").value.trim();
       const pageNum = parseInt(document.getElementById("pageNum").value || "1");
       const useDetailedCheck = document.getElementById("detailedCheck").checked;
       const multiPageMode = document.getElementById("multiPageCheck")?.checked;
@@ -996,11 +996,20 @@
 
       setProgressSplit(useDetailedCheck);
 
-      if (!blogId) {
+      if (!blogIdInput) {
         alert("네이버 블로그 ID를 입력해주세요.");
         return;
       }
 
+      // 블로그 ID 추출 (URL일 경우 처리)
+      const idFromUrlMatch = blogIdInput.match(/blog\.naver\.com\/([a-zA-Z0-9._-]+)/);
+      if (idFromUrlMatch) {
+        blogIdInput = idFromUrlMatch[1];
+        alert(`블로그 주소에서 ID "${blogIdInput}"를 추출했습니다. 해당 ID로 검색을 진행합니다.`);
+        document.getElementById("blogId").value = blogIdInput; // 입력 필드 업데이트
+      }
+
+      const blogId = blogIdInput;
       if (multiPageMode) {
         alert(`📄 연속 분석 모드가 활성화되었습니다.\n\n1페이지부터 ${pageNum}페이지까지 순차 분석합니다.`);
       }
