@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
   <meta charset="UTF-8" />
   <title>공정위 문구 검사기 - 페어블로그</title>
@@ -19,34 +20,32 @@
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-YRHK2QVDMT"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
+    function gtag() { dataLayer.push(arguments); }
     gtag('js', new Date());
     gtag('config', 'G-YRHK2QVDMT');
   </script>
 </head>
+
 <body class="bg-gray-100 text-gray-800 p-6">
   <div class="max-w-4xl mx-auto">
     <section class="text-center text-gray-700 my-6">
-      <h1 onclick="location.reload()" class="text-2xl font-extrabold text-blue-600 hover:text-blue-800 transition-colors duration-200 text-center block cursor-pointer">
+      <h1 onclick="location.reload()"
+        class="text-2xl font-extrabold text-blue-600 hover:text-blue-800 transition-colors duration-200 text-center block cursor-pointer">
         공정위 문구 검사기 - 페어블로그
       </h1>
       <p class="text-sm text-gray-600 mt-2">
         공정위 표시광고 가이드에 따라 네이버 블로그 체험단 문구를 자동 분석하는 무료 도구입니다.
       </p>
     </section>
-    
+
     <!-- 전체 그룹 -->
     <div class="flex flex-wrap items-end gap-4 mb-4 text-sm">
 
       <!-- 1행: 블로그 ID 입력 -->
       <div class="flex flex-col w-full">
         <label for="blogId" class="mb-1 text-gray-700">네이버 블로그 ID 입력:</label>
-        <input
-          type="text"
-          id="blogId"
-          class="h-[42px] px-3 border rounded text-sm w-full"
-          placeholder="예: blogpeople"
-        />
+        <input type="text" id="blogId" class="h-[42px] px-3 border rounded text-sm w-full"
+          placeholder="예: blogpeople" />
       </div>
 
       <!-- 2행: 페이지 + OCR + 버튼 -->
@@ -55,10 +54,7 @@
         <!-- 페이지 선택 -->
         <div class="flex items-center gap-2">
           <label for="pageNum" class="text-gray-700 whitespace-nowrap">페이지</label>
-          <select
-            id="pageNum"
-            class="w-[80px] h-[38px] px-2 border rounded"
-          >
+          <select id="pageNum" class="w-[80px] h-[38px] px-2 border rounded">
             <option value="1" selected>1</option>
             <option value="2">2</option>
             <option value="3">3</option>
@@ -92,7 +88,9 @@
             <label class="relative inline-flex items-center cursor-pointer">
               <input type="checkbox" id="detailedCheck" class="sr-only peer" checked />
               <div class="w-10 h-5 bg-gray-300 rounded-full peer-checked:bg-green-600 transition-colors"></div>
-              <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white border rounded-full transition-transform peer-checked:translate-x-5"></div>
+              <div
+                class="absolute left-0.5 top-0.5 w-4 h-4 bg-white border rounded-full transition-transform peer-checked:translate-x-5">
+              </div>
             </label>
           </div>
 
@@ -104,7 +102,9 @@
             <label class="relative inline-flex items-center cursor-pointer">
               <input type="checkbox" id="multiPageCheck" class="sr-only peer" />
               <div class="w-10 h-5 bg-gray-300 rounded-full peer-checked:bg-green-600 transition-colors"></div>
-              <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white border rounded-full transition-transform peer-checked:translate-x-5"></div>
+              <div
+                class="absolute left-0.5 top-0.5 w-4 h-4 bg-white border rounded-full transition-transform peer-checked:translate-x-5">
+              </div>
             </label>
           </div>
         </div>
@@ -112,11 +112,8 @@
 
         <!-- 검사 시작 버튼 -->
         <div class="flex-1 min-w-[120px]">
-          <button
-            id="startBtn"
-            onclick="fetchBlogPosts()"
-            class="w-full h-[42px] bg-blue-600 text-white px-5 rounded hover:bg-blue-700 transition whitespace-nowrap"
-          >
+          <button id="startBtn" onclick="fetchBlogPosts()"
+            class="w-full h-[42px] bg-blue-600 text-white px-5 rounded hover:bg-blue-700 transition whitespace-nowrap">
             검사 시작
           </button>
         </div>
@@ -139,11 +136,7 @@
       <!-- 정렬 방식 -->
       <div class="flex flex-col">
         <label for="tagFilterSelect" class="mb-1 font-semibold text-gray-700">🧭 정렬 방식</label>
-        <select
-          id="tagFilterSelect"
-          onchange="filterByTag(this.value)"
-          class="w-[140px] h-[36px] px-2 border rounded"
-        >
+        <select id="tagFilterSelect" onchange="filterByTag(this.value)" class="w-[140px] h-[36px] px-2 border rounded">
           <option value="전체">전체</option>
           <option value="정책 지킴">정책 지킴</option>
           <option value="정책 위반">정책 위반</option>
@@ -155,11 +148,7 @@
       <!-- 보기 방식 -->
       <div class="flex flex-col">
         <label for="viewModeSelect" class="mb-1 font-semibold text-gray-700">🖼 보기 방식</label>
-        <select
-          id="viewModeSelect"
-          onchange="setViewMode(this.value)"
-          class="w-[140px] h-[36px] px-2 border rounded"
-        >
+        <select id="viewModeSelect" onchange="setViewMode(this.value)" class="w-[140px] h-[36px] px-2 border rounded">
           <option value="list">☰ 리스트</option>
           <option value="grid">🔲 그리드</option>
           <option value="summary">📄 요약</option>
@@ -186,17 +175,18 @@
           </label>
         </div>
       </div>
-      <pre id="reportContent" class="w-full p-3 bg-gray-100 border rounded text-sm whitespace-pre-wrap h-64 overflow-auto"></pre>
+      <pre id="reportContent"
+        class="w-full p-3 bg-gray-100 border rounded text-sm whitespace-pre-wrap h-64 overflow-auto"></pre>
       <button onclick="downloadTxt()" class="mt-2 bg-green-600 text-white px-4 py-2 rounded">TXT 다운로드</button>
       <button onclick="copyToClipboard()" class="bg-blue-600 text-white px-4 py-2 rounded">클립보드에 복사</button>
     </section>
 
 
 
-    
+
     <!-- 결과 표시 -->
     <ul id="postList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch"></ul>
-    
+
     <!-- 이건 ul 밖으로 빼야 .innerHTML 영향을 안 받음 -->
     <div id="emptyMessage" class="text-center text-gray-500 py-10">
       🔍 결과가 이곳에 표시됩니다. 상단에서 블로그 ID를 입력하세요.
@@ -227,10 +217,11 @@
     </section>
 
     <!-- 테스트/운영 모드 상태 표시 -->
-    <div id="buildModeLabel" class="fixed bottom-2 left-2 text-xs text-white bg-gray-500 px-2 py-1 rounded opacity-70 z-50">
+    <div id="buildModeLabel"
+      class="fixed bottom-2 left-2 text-xs text-white bg-gray-500 px-2 py-1 rounded opacity-70 z-50">
       모드 표시 중...
     </div>
-    
+
     <!-- 우측 상단 고정 로그인/로그아웃 버튼 -->
     <div id="adminAuth" class="fixed top-2 right-2 z-50 space-x-2">
       <button id="loginBtn" class="text-xs bg-gray-800 text-white px-2 py-1 rounded">🔐 로그인</button>
@@ -244,13 +235,13 @@
 
 
     <!-- 토글 버튼 -->
-    <button onclick="toggleGuestbook()"
-      class="fixed bottom-4 right-4 z-50 bg-blue-600 text-white px-3 py-2 rounded">
+    <button onclick="toggleGuestbook()" class="fixed bottom-4 right-4 z-50 bg-blue-600 text-white px-3 py-2 rounded">
       💬 방명록
     </button>
 
     <!-- ✅ 모바일: hidden, PC: block -->
-    <div id="guestbook" class="hidden fixed top-20 right-4 w-72 bg-white border rounded shadow-lg p-4 z-50 text-sm" style="top: 200px;">
+    <div id="guestbook" class="hidden fixed top-20 right-4 w-72 bg-white border rounded shadow-lg p-4 z-50 text-sm"
+      style="top: 200px;">
       <!-- 상단: 제목 + 닫기 버튼 -->
       <div class="flex justify-between items-center mb-2">
         <h3 class="text-lg font-bold">📓 방명록</h3>
@@ -265,7 +256,7 @@
       <ul id="guestbookList" class="space-y-1 max-h-48 overflow-auto text-xs text-gray-700"></ul>
     </div>
 
-    
+
     <!-- 로그인 모달 -->
     <div id="loginFormBox" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50 hidden">
       <div class="bg-white border rounded shadow-lg p-6 w-80 relative">
@@ -301,42 +292,42 @@
     }
 
     const fairDomainAliasMap = {
-      "강남맛집.net": "강남맛집",        
-      "xn--939au0g4vj8sq.net": "강남맛집",        
-      "%EA%B0%95%EB%82%A8%EB%A7%9B%EC%A7%91.net": "강남맛집",        
-      "blogmall.net": "미블",        
-      "mrble1": "미블",        
-      "d3i7y4ugnppb9p.cloudfront.net": "슈퍼멤버스",        
-      "reviewnote": "리뷰노트",        
-      "dinnerqueen.net": "디너의여왕",        
-      "revu.net": "레뷰",        
-      "reviewplace.co.kr": "리뷰플레이스",       
-      "nugunablog.co.kr": "클라우드리뷰",  
-      "tble.kr": "티블",  
-      "seoulouba.co.kr": "서울오빠",  
-      "dailyview.kr": "데일리뷰",  
-      "assaview.co.kr": "아싸뷰",     
-      "ringble.co.kr": "링블",       
-      "blogdexreview.space": "블덱스",    
-      "chvu_01.jpg": "체험뷰",    
-      "chvu_02.jpg": "체험뷰",    
-      "chvu_03.jpg": "체험뷰",    
-      "cometoplay.kr": "놀러와",    
-      "가보자체험단.com": "가보자",    
-      "xn--o39a04kpnjo4k9hgflp.com": "가보자",    
-      "sioneview.com": "시원뷰",    
-      "kormedia.co.kr": "오마이블로그",    
-      "블로그원정대.com": "블로그원정대",    
-      "xn--2i0bl9gt7ekxgr7lzzb.com": "블로그원정대",    
-      "모두모여체험단.com": "모두모여",    
-      "xn--6j1br0ag3lba435lvsj96p.com": "모두모여",    
-      "rewview.co.kr": "르뷰",    
-      "popomon": "포포몬",    
-      "4blog": "포블로그",    
-      "dinodan": "디노단",    
-      "cashnote": "캐시노트",    
-      "unnispick.com": "언니스픽",    
-      "mateb.kr": "기타체험단"          
+      "강남맛집.net": "강남맛집",
+      "xn--939au0g4vj8sq.net": "강남맛집",
+      "%EA%B0%95%EB%82%A8%EB%A7%9B%EC%A7%91.net": "강남맛집",
+      "blogmall.net": "미블",
+      "mrble1": "미블",
+      "d3i7y4ugnppb9p.cloudfront.net": "슈퍼멤버스",
+      "reviewnote": "리뷰노트",
+      "dinnerqueen.net": "디너의여왕",
+      "revu.net": "레뷰",
+      "reviewplace.co.kr": "리뷰플레이스",
+      "nugunablog.co.kr": "클라우드리뷰",
+      "tble.kr": "티블",
+      "seoulouba.co.kr": "서울오빠",
+      "dailyview.kr": "데일리뷰",
+      "assaview.co.kr": "아싸뷰",
+      "ringble.co.kr": "링블",
+      "blogdexreview.space": "블덱스",
+      "chvu_01.jpg": "체험뷰",
+      "chvu_02.jpg": "체험뷰",
+      "chvu_03.jpg": "체험뷰",
+      "cometoplay.kr": "놀러와",
+      "가보자체험단.com": "가보자",
+      "xn--o39a04kpnjo4k9hgflp.com": "가보자",
+      "sioneview.com": "시원뷰",
+      "kormedia.co.kr": "오마이블로그",
+      "블로그원정대.com": "블로그원정대",
+      "xn--2i0bl9gt7ekxgr7lzzb.com": "블로그원정대",
+      "모두모여체험단.com": "모두모여",
+      "xn--6j1br0ag3lba435lvsj96p.com": "모두모여",
+      "rewview.co.kr": "르뷰",
+      "popomon": "포포몬",
+      "4blog": "포블로그",
+      "dinodan": "디노단",
+      "cashnote": "캐시노트",
+      "unnispick.com": "언니스픽",
+      "mateb.kr": "기타체험단"
     };
     //포블로그, 포포몬, 디노단, 캐시노트 우리가게체험단, 
 
@@ -365,7 +356,7 @@
       "경제적대가"
     ];
 
-    const nonSponsoredKeywords =  [
+    const nonSponsoredKeywords = [
       "내돈내산",
       "내돈내먹",
       "직접구매",
@@ -374,7 +365,7 @@
       "광고아님",
       "광고없는",
       "대가없이"
-    ];    
+    ];
 
     function isSponsored(text) {
       if (!text) return false;
@@ -497,7 +488,7 @@
     let progressSplit = { analysis: 70, ocr: 30 }; // 기본값
 
     let currentViewMode = 'list';
-    let globalPostData = []; 
+    let globalPostData = [];
 
     function setProgressSplit(useDetailedCheck) {
       progressSplit = useDetailedCheck
@@ -554,7 +545,7 @@
           imageSrc = "https://xn--939au0g4vj8sq.net/_sp/wgs.php?ctf=MzE4MDI0fDE3NDEzNDd8YWRtXzI5MzI4Nnw4NjgxMXwyMDI1MDUxNg==";
         }
 
-        if (!useFairImage && imageSrc.includes("type=w") && imageSrc.includes("_blur")) {          
+        if (!useFairImage && imageSrc.includes("type=w") && imageSrc.includes("_blur")) {
           imageSrc = imageSrc.replace(/type=w\d+_blur/, "type=w800").replace(/([?&])type=w\d+_blur/, "$1type=w800"); // 쿼리도 포함 처리
         }
 
@@ -648,13 +639,13 @@
 
         const title = document.createElement("h2");
         title.className = "font-semibold text-sm leading-snug line-clamp-2 overflow-hidden";
-        title.innerHTML = `<a href="${post.url}" target="_blank">${
-          hasSponsoredInTitle
+        title.innerHTML = `<a href="${post.url}" target="_blank">${hasNonSponsoredInTitle
+          ? highlightNonSponsoredKeywords(post.title)
+          : hasSponsoredInTitle
             ? highlightSponsoredKeywords(post.title)
-            : hasNonSponsoredInTitle
-              ? highlightNonSponsoredKeywords(post.title)
-              : post.title
-        }</a>`;
+            : post.title
+          }</a>`;
+
 
         const date = document.createElement("p");
         date.className = "text-sm text-gray-500 whitespace-nowrap overflow-hidden text-ellipsis";
@@ -694,7 +685,7 @@
             //console.log("⚪ 하이라이트 없음: 기본 텍스트 출력");
             summary.textContent = post.first_100_chars;
           }
-          
+
           content.appendChild(summary);
         }
 
@@ -777,14 +768,14 @@
       const tagOrder = showViolationOnly
         ? ["🔴 정책 위반 (공정위 이미지)"]
         : [
-            "🟢 정책 지킴 (공정위 이미지)",
-            "🔴 정책 위반 (공정위 이미지)",
-            "🟢 정책 지킴 (텍스트)",
-            "🟢 정책 지킴 (이미지 OCR)",
-            "🔵 내돈내산",
-            "⚪ 불분명 (스티커)",
-            "⚪ 불분명"
-          ];
+          "🟢 정책 지킴 (공정위 이미지)",
+          "🔴 정책 위반 (공정위 이미지)",
+          "🟢 정책 지킴 (텍스트)",
+          "🟢 정책 지킴 (이미지 OCR)",
+          "🔵 내돈내산",
+          "⚪ 불분명 (스티커)",
+          "⚪ 불분명"
+        ];
 
       const pageLabel = multiPageMode
         ? `1~${pageNum} / ${totalPages}`
@@ -962,7 +953,7 @@
       } else {
         listEl.style.display = "grid";
         summaryEl.style.display = "none";
-        
+
         if (tagFilterSelect) {
           tagFilterSelect.disabled = false;
         }
@@ -984,16 +975,17 @@
       return str.charAt(0).toUpperCase() + str.slice(1);
     }
 
-
-
     async function fetchBlogPosts() {
-      let ocrTotal = 0;
+      let ocrQueue = [];
       let ocrCompleted = 0;
+
       const blogId = document.getElementById("blogId").value.trim();
       const pageNum = parseInt(document.getElementById("pageNum").value || "1");
       const useDetailedCheck = document.getElementById("detailedCheck").checked;
       const multiPageMode = document.getElementById("multiPageCheck")?.checked;
-      const totalPages = multiPageMode ? pageNum : pageNum;
+      const startPage = multiPageMode ? 1 : pageNum;
+      const endPage = pageNum;
+      const totalPages = multiPageMode ? pageNum : 1;
 
       setProgressSplit(useDetailedCheck);
 
@@ -1001,157 +993,139 @@
         alert("네이버 블로그 ID를 입력해주세요.");
         return;
       }
+
       if (multiPageMode) {
         alert(`📄 연속 분석 모드가 활성화되었습니다.\n\n1페이지부터 ${pageNum}페이지까지 순차 분석합니다.`);
       }
-      
-      // 👉 버튼 비활성화
+
       startBtn.disabled = true;
       startBtn.classList.add("opacity-50", "cursor-not-allowed");
-      
 
       const loadingText = document.getElementById("loadingText");
       const loadingBarFill = document.getElementById("loadingBar").firstElementChild;
-
-      // ✅ 렌더 서버 깨우기 메시지
       loadingText.textContent = "☁️ 서버를 준비 중입니다... (최대 20초 정도 소요될 수 있어요)";
       loadingBarFill.style.width = `0%`;
       document.getElementById("loadingText").classList.remove("hidden");
       document.getElementById("loadingBar").classList.remove("hidden");
-
       showLoading();
+
       const domainList = Object.keys(fairDomainAliasMap);
       const BASE_URL = isTestMode ? "http://localhost:3000" : "https://fairblog.onrender.com";
       const analyzeSingleUrl = `${BASE_URL}/analyze_single`;
       const postListUrl = `${BASE_URL}/get_post_list`;
 
       try {
-        // ⏱ 전체 시간 측정 시작
         const startTime = performance.now();
+        let completed = 0;
+        const allPosts = [];
 
-        // 📥 여러 페이지를 한 번에 분석
-        let allItems = [];
-
-        for (let p = 1; p <= totalPages; p++) {
-          // 📥 1단계: 서버에서 포스트 리스트 받아오기
+        for (let page = startPage; page <= endPage; page++) {
           const res = await fetch(postListUrl, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ blogId, pageNum: p })
+            body: JSON.stringify({ blogId, pageNum: page })
           });
 
-          if (!res.ok) throw new Error("네이버 블로그 목록 요청 실패");
+          if (!res.ok) throw new Error(`❌ ${page}페이지 글 목록 요청 실패`);
+
           const data = await res.json();
-          allItems.push(...(data.items || []));
-        }
+          const items = data.items || [];
 
+          if (items.length === 0) {
+            console.log(`📭 ${page}페이지 게시글 없음`);
+            continue;
+          }
 
-        if (allItems.length === 0) {
-          alert("📭 게시글이 없습니다.");
-          return;
-        }
+          const urls = items.map(item =>
+            `https://m.blog.naver.com/${item.domainIdOrBlogId}/${item.logNo}`
+          );
 
-        const urls = allItems.map(item =>
-          `https://m.blog.naver.com/${item.domainIdOrBlogId}/${item.logNo}`
-        );
+          const tasks = urls.map((postUrl, idx) => {
+            const indexInAll = allPosts.length + idx;
 
-        // 🔁 2단계: 병렬 분석 (n개씩)
-        const allPosts = new Array(urls.length); // 결과 저장용 (정렬 유지)
-        const batchSize = 24;
-        let completed = 0;
-
-        for (let i = 0; i < urls.length; i += batchSize) {
-          const batch = urls.slice(i, i + batchSize);
-
-          const tasks = batch.map((postUrl, idx) => {
-            const realIdx = i + idx; // 전체 인덱스
             return fetch(analyzeSingleUrl, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                postUrl,
-                fairTradeImageLinks: domainList
-              })
+              body: JSON.stringify({ postUrl, fairTradeImageLinks: domainList })
             })
               .then(r => r.ok ? r.json() : null)
               .catch(() => null)
-              .then(async result => {
-                allPosts[realIdx] = result; // ✅ 순서에 맞춰 저장
+              .then(result => {
+                allPosts[indexInAll] = result;
                 completed++;
-                updateProgress(completed, urls.length);
-                loadingText.textContent = `⏳ ${completed} / ${urls.length} 포스트 분석 중...`;
+                updateProgress(completed, totalPages * 24);
+                loadingText.textContent = `⏳ ${completed} / ${totalPages * 24} 포스트 분석 중...`;
 
-                
-                //console.log(`📝 글 제목: ${result.title}`);
-
-                // ✅ 공정위 이미지가 없을 때만 텍스트/OCR 검사
-                if (!result.fair_trade_img_url) {
+                // OCR 예약 조건만 확인해서 큐에 넣기
+                if (
+                  useDetailedCheck &&
+                  result &&
+                  !result.fair_trade_img_url &&
+                  !result.first_ocr_text
+                ) {
                   const lowerTitle = (result.title || "").toLowerCase();
                   const lowerText = (result.first_text_block || "").toLowerCase();
                   const imageUrl = result.first_image_url || "";
                   const isMapImage = imageUrl.includes("static.map/v2/map/staticmap.bin");
 
-                  if (isMapImage) {
-                    result.first_ocr_text = "";
-                  } else if (isSponsored(lowerText) || isSponsored(lowerTitle)) {
-                    result.first_ocr_text = "";
-                  } else if (isNonSponsored(lowerText) || isNonSponsored(lowerTitle)) {
-                    result.first_ocr_text = "";
-                  } else if (useDetailedCheck) {
-                    // ✅ 상세 검색 ON → OCR 실행
-                    ocrTotal++;
-                    try {
-                      await runOcrForPost(result);
-                    } catch (err) {
-                      console.warn("❌ OCR 실패", err);
-                    } finally {
-                      ocrCompleted++;
-                      if(completed === urls.length) {
-                        updateOcrProgress(ocrCompleted, ocrTotal);
-                        loadingText.textContent = `📦 포스트 분석 완료 → 📝 이미지 문구 확인 중 (${ocrCompleted} / ${ocrTotal})`;
-                      }
-                    }
+                  if (
+                    !isMapImage &&
+                    !isSponsored(lowerText) &&
+                    !isSponsored(lowerTitle) &&
+                    !isNonSponsored(lowerText) &&
+                    !isNonSponsored(lowerTitle)
+                  ) {
+                    ocrQueue.push(result);
                   } else {
-                    // ✅ 상세 검색 OFF → 이미지 검사 생략
                     result.first_ocr_text = "";
-                    //console.log("🔇 OCR 생략됨 (상세 검색 OFF)");
                   }
+                } else if (result) {
+                  result.first_ocr_text = "";
                 }
               });
           });
 
           await Promise.allSettled(tasks);
+          await new Promise(resolve => setTimeout(resolve, 1500)); // 페이지 간 딜레이
         }
 
-        // 🟢 3단계: 결과 렌더링
-        const filteredPosts = allPosts.filter(p => p !== null);
-        globalPostData = filteredPosts;
-        renderPosts(globalPostData);
-        //renderPosts(allPosts);
-        renderTxt(allPosts);
-        loadingText.textContent = `✅ 분석 완료! 총 ${allPosts.length}건`;
+        // 🟡 OCR 단계 시작
+        for (let i = 0; i < ocrQueue.length; i++) {
+          try {
+            await runOcrForPost(ocrQueue[i]);
+          } catch (err) {
+            console.warn("❌ OCR 실패", err);
+          } finally {
+            ocrCompleted++;
+            updateOcrProgress(ocrCompleted, ocrQueue.length);
+            loadingText.textContent = `📦 이미지 문구 분석 중... (${ocrCompleted} / ${ocrQueue.length})`;
+          }
+        }
 
-        // ⏱ 소요 시간 로그 출력
+        const filtered = allPosts.filter(p => p);
+        globalPostData = filtered;
+        renderPosts(globalPostData);
+        renderTxt(filtered);
+
+        loadingText.textContent = `✅ 분석 완료! 총 ${filtered.length}건`;
+        loadingBarFill.style.width = "100%";
+
         const endTime = performance.now();
         const elapsed = ((endTime - startTime) / 1000).toFixed(2);
         const avg = (elapsed / completed).toFixed(2);
-        //console.log(`✅ 전체 분석 시간: ${elapsed}초`);
         console.log(`⏱ 포스트당 평균 분석 시간: ${avg}초`);
 
       } catch (err) {
-        console.error("분석 오류:", err);
+        console.error("❌ 분석 오류:", err);
         alert("⚠️ 네이버 블로그 분석 중 오류가 발생했습니다.");
       } finally {
-        
-        // 👉 버튼 다시 활성화
         startBtn.disabled = false;
         startBtn.classList.remove("opacity-50", "cursor-not-allowed");
-
-        hideLoading();
       }
     }
+
   </script>
-  
+
 
   <script type="module">
     // Import the functions you need from the SDKs you need
@@ -1234,7 +1208,7 @@
     document.getElementById("closeLoginBtn").onclick = () => {
       document.getElementById("loginFormBox").classList.add("hidden");
     };
-    
+
     // 로그아웃 처리
     document.getElementById("logoutBtn").onclick = async () => {
       await signOut(auth);
@@ -1313,12 +1287,12 @@
           const timestamp = data.timestamp?.toDate?.();
           const dateText = timestamp
             ? timestamp.toLocaleString('ko-KR', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit'
-              })
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit'
+            })
             : '작성일자 없음';
 
           li.className = "border-b py-2 text-sm text-left";
@@ -1363,7 +1337,7 @@
       const animal = animals[Math.floor(Math.random() * animals.length)];
       return `${adj} ${animal}`;
     }
-    
+
     // ✅ 방명록 작성 처리
     const form = document.getElementById("guestbookForm");
     const nicknameInput = document.getElementById("nickname");
@@ -1442,11 +1416,11 @@
             "텍스트에 명시되지 않은 스티커(예: '제공받음')가 포함된 경우에도 일부 감지할 수 있습니다.\n\n" +
             "단, 이미지의 글자가 너무 작거나 특이한 글꼴인 경우\n정확한 인식이 어려울 수 있습니다."
           );
-          } else {
+        } else {
           alert(
             "ℹ️ 이미지 문구 분석이 비활성화되었습니다.\n\n" +
             "공정위 도메인 이미지와 텍스트만 분석합니다."
-          );         
+          );
         }
       });
     });
@@ -1454,4 +1428,5 @@
 
   </script>
 </body>
+
 </html>
