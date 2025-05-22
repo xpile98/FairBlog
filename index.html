@@ -118,13 +118,16 @@
             검사 시작
           </button>
         </div>
-
       </div>
-
     </div>
 
-
-
+    <!-- 광고 배너 (반응형) -->
+    <div class="w-full gap-4 mb-4 flex justify-center">
+      <a href="https://chromewebstore.google.com/detail/%EB%84%A4%EC%9D%B4%EB%B2%84-%EB%B8%94%EB%A1%9C%EA%B7%B8-%ED%8C%8C%EC%9B%8C-%EB%8B%A8%EC%B6%95%ED%82%A4/dicmnigkkiajpegempfdpbnejobmemcn"
+        target="_blank" rel="noopener noreferrer" class="block w-full">
+        <img src="img/banner_main.png" alt="광고 배너" class="w-full h-auto rounded shadow-sm border" />
+      </a>
+    </div>
 
     <div id="loadingText" class="mt-2 text-sm text-blue-700 hidden">분석 대기 중...</div>
     <div id="loadingBar" class="w-full bg-gray-200 h-2 mt-4 mb-6 rounded overflow-hidden hidden">
@@ -186,7 +189,8 @@
 
 
     <!-- 결과 표시 -->
-    <ul id="postList" class="w-full max-w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch"></ul>
+    <ul id="postList" class="w-full max-w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
+    </ul>
 
     <!-- 이건 ul 밖으로 빼야 .innerHTML 영향을 안 받음 -->
     <div id="emptyMessage" class="text-center text-gray-500 py-10">
@@ -287,7 +291,7 @@
       modeLabel.classList.remove("bg-gray-500");
       modeLabel.classList.add("bg-yellow-600");
     } else {
-      modeLabel.textContent = "✅ 최종 빌드 (20250522_1330)";
+      modeLabel.textContent = "✅ 최종 빌드 (20250522_1430)";
       modeLabel.classList.remove("bg-gray-500");
       modeLabel.classList.add("bg-green-700");
     }
