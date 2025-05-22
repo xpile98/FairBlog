@@ -953,9 +953,19 @@
       if (mode === 'summary') {
         listEl.style.display = "none";
         summaryEl.style.display = "block";
+
+        // ✅ 정렬 방식 '전체'로 고정 + 비활성화
+        if (tagFilterSelect) {
+          tagFilterSelect.value = "전체";
+          tagFilterSelect.disabled = true;
+        }
       } else {
         listEl.style.display = "grid";
         summaryEl.style.display = "none";
+        
+        if (tagFilterSelect) {
+          tagFilterSelect.disabled = false;
+        }
 
         listEl.className = mode === 'grid'
           ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch'
@@ -964,6 +974,10 @@
 
       // 🔁 다시 랜더링
       renderPosts(globalPostData);
+
+      // ✅ 현재 태그 필터 반영
+      const selectedTag = tagFilterSelect?.value || "전체";
+      filterByTag(selectedTag);
     }
 
     function capitalize(str) {

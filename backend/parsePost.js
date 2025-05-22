@@ -53,23 +53,23 @@ async function parseBlogPostContent(postUrl, fairTradeImageLinks) {
     }
   });
 
-    const allText = contentDiv.text().replace(/\s+/g, '').trim();
-    const first100Chars = allText.slice(0, 200);
+  const allText = contentDiv.text().replace(/\s+/g, '').trim();
+  const first100Chars = allText.slice(0, 200);
 
-    const result = {
-      title,
-      url: postUrl,
-      date,
-      fair_trade_img_url: fairTradeImgUrl,
-      fair_trade_img_position: fairTradeImgPosition,
-      first_image_url: firstImageUrl,
-      first_100_chars: first100Chars
-    };
+  const result = {
+    title,
+    url: postUrl,
+    date,
+    fair_trade_img_url: fairTradeImgUrl,
+    fair_trade_img_position: fairTradeImgPosition,
+    first_image_url: firstImageUrl,
+    first_100_chars: first100Chars
+  };
 
-    //console.log("📤 분석 결과 반환:", result);
-    //console.log("\n\n");
+  //console.log("📤 분석 결과 반환:", result);
+  //console.log("\n\n");
 
-    return result;
+  return result;
 
   } catch (error) {
     const statusCode = error?.response?.status;
