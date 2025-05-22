@@ -31,7 +31,8 @@
     <section class="text-center text-gray-700 my-6">
       <h1 onclick="location.reload()"
         class="text-2xl font-extrabold text-blue-600 hover:text-blue-800 transition-colors duration-200 text-center block cursor-pointer">
-        공정위 문구 검사기 - 페어블로그
+        <span class="block sm:inline">공정위 문구 검사기</span>
+        <span class="block sm:inline">페어블로그</span>
       </h1>
       <p class="text-sm text-gray-600 mt-2">
         공정위 표시광고 가이드에 따라 네이버 블로그 체험단 문구를 자동 분석하는 무료 도구입니다.
@@ -79,9 +80,9 @@
         </div>
 
         <!-- OCR + 다중 페이지 분석 토글 -->
-        <div class="flex items-center gap-8">
+        <div class="flex flex-wrap gap-4 sm:gap-8">
           <!-- OCR 토글 -->
-          <div class="flex items-center gap-4">
+          <div class="flex items-center gap-4 w-full sm:w-auto">
             <label for="detailedCheck" class="text-gray-700 whitespace-nowrap">
               이미지 문구 분석 <span class="text-gray-400 text-xs">(몇 초 소요)</span>
             </label>
@@ -95,7 +96,7 @@
           </div>
 
           <!-- 연속 분석 토글 -->
-          <div class="flex items-center gap-4">
+          <div class="flex items-center gap-4 w-full sm:w-auto">
             <label for="multiPageCheck" class="text-gray-700 whitespace-nowrap">
               1페이지부터 연속 분석
             </label>
@@ -185,7 +186,7 @@
 
 
     <!-- 결과 표시 -->
-    <ul id="postList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch"></ul>
+    <ul id="postList" class="w-full max-w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch"></ul>
 
     <!-- 이건 ul 밖으로 빼야 .innerHTML 영향을 안 받음 -->
     <div id="emptyMessage" class="text-center text-gray-500 py-10">
@@ -604,9 +605,11 @@
           ? "border rounded-md p-2 bg-white shadow-sm flex flex-col text-sm min-h-[110px]"
           : "border rounded-md p-4 mb-4 bg-white shadow-sm";
         li.setAttribute("data-tags", tagTextsForFilter.join(" "));
+        li.className += " min-w-0";
+
 
         const wrapper = document.createElement("div");
-        wrapper.className = "flex gap-4 items-start";
+        wrapper.className = "flex flex-wrap gap-4 items-start";
 
         const imageWrapper = document.createElement("div");
         imageWrapper.className = "relative self-center";
@@ -632,7 +635,7 @@
         wrapper.appendChild(imageWrapper);
 
         const content = document.createElement("div");
-        content.className = "flex-1 overflow-hidden";
+        content.className = "flex-1 overflow-hidden min-w-0";
 
         const hasSponsoredInTitle = isSponsored(lowerTitle);
         const hasNonSponsoredInTitle = isNonSponsored(lowerTitle);
@@ -648,7 +651,7 @@
 
 
         const date = document.createElement("p");
-        date.className = "text-sm text-gray-500 whitespace-nowrap overflow-hidden text-ellipsis";
+        date.className = "text-sm text-gray-500 overflow-hidden text-ellipsis";
         date.textContent = post.date;
 
         content.appendChild(title);
