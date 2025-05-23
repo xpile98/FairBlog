@@ -291,7 +291,7 @@
       modeLabel.classList.remove("bg-gray-500");
       modeLabel.classList.add("bg-yellow-600");
     } else {
-      modeLabel.textContent = "✅ 최종 빌드 (20250522_1530)";
+      modeLabel.textContent = "✅ 최종 빌드 (20250523_1140)";
       modeLabel.classList.remove("bg-gray-500");
       modeLabel.classList.add("bg-green-700");
     }
@@ -896,40 +896,56 @@
 
     async function runOcrForPost(post) {
       let imageUrl = post.first_image_url;
-      //console.log("runOcrForPost imageUrl: ", imageUrl);
       if (!imageUrl || !imageUrl.startsWith("http")) {
         post.first_ocr_text = "";
         return;
       }
 
+      // 블러 제거
       if (/w\d+_blur/.test(imageUrl)) {
         imageUrl = imageUrl.replace(/w\d+_blur/, "w800");
-        //console.log("🔧 블러 제거된 이미지 주소로 교체:", imageUrl);
-      } else {
-        //console.log("🔧 이미지에 wXX_blur 없음:", imageUrl);
       }
 
-      // ✅ 프록시 URL 구성
+      // 프록시 URL 구성
       const BASE_URL = location.hostname.includes("localhost") ? "http://localhost:3000" : "https://fairblog.onrender.com";
       const proxyUrl = `${BASE_URL}/proxy?url=${encodeURIComponent(imageUrl)}`;
-      //console.log(`🧩 OCR 대상 프록시 이미지: ${proxyUrl}`);
+
+      // ✅ 먼저 HEAD 요청으로 이미지 크기 확인
+      try {
+        const headRes = await fetch(proxyUrl, { method: 'HEAD' });
+        const sizeStr = headRes.headers.get('content-length');
+        const size = parseInt(sizeStr, 10);
+
+        if (!isNaN(size)) {
+          const sizeKB = (size / 1024).toFixed(1);
+          const sizeMB = (size / (1024 * 1024)).toFixed(2);
+
+          console.warn(`📦 이미지 크기 확인: ${post.title} → ${sizeKB} KB (${sizeMB} MB)`);
+
+          if (size > 1024 * 1024 * 0.06) {
+            console.warn(`⚠️ OCR 스킵됨 (0.06MB 초과): ${post.title}`);
+            post.first_ocr_text = "";
+            return;
+          }
+        } else {
+          console.warn(`⚠️ 이미지 용량 정보 없음 (Content-Length 미포함): ${post.title}`);
+        }
+      } catch (e) {
+        console.warn(`❌ OCR 이미지 용량 확인 실패: ${post.title}`, e);
+        post.first_ocr_text = "";
+        return;
+      }
 
 
+      // OCR 처리 시작
       const startTime = performance.now();
 
       try {
-        //const { data: { text } } = await Tesseract.recognize(proxyUrl, 'kor', {
-        //  logger: m => console.log(`[OCR] ${post.title}: ${m.status} (${Math.round(m.progress * 100)}%)`)
-        //});
         const { data: { text } } = await Tesseract.recognize(proxyUrl, 'kor');
-
-
         const endTime = performance.now();
         const elapsed = (endTime - startTime).toFixed(1);
-
         post.first_ocr_text = text.replace(/\s+/g, "");
         //console.log(`✅ OCR 완료: ${post.title} (${elapsed}ms)`);
-        //console.log(`🔍 OCR 결과:\n${post.first_ocr_text}\n`);
       } catch (err) {
         const failTime = performance.now();
         const elapsed = (failTime - startTime).toFixed(1);
@@ -937,6 +953,7 @@
         post.first_ocr_text = "";
       }
     }
+
 
     function setViewMode(mode) {
       currentViewMode = mode;

@@ -30,46 +30,44 @@ async function parseBlogPostContent(postUrl, fairTradeImageLinks) {
     //console.log(`🔍 [${postUrl}] 이미지 수: ${images.length}`);
 
     images.each((i, el) => {
-    const src = $(el).attr('src') || '';
-    // console.log(`🔎 이미지 ${i + 1}: ${src}`);
+      const src = $(el).attr('src') || '';
+      const classAttr = $(el).attr('class') || '';
 
-    if (!src.startsWith('http')) {
-      //console.log(`⛔ 무시 (http로 시작하지 않음): ${src}`);
-      return;
-    }
+      if (!src.startsWith('http')) return;
 
-    if (!firstImageUrl) {
-      firstImageUrl = src;
-      //console.log(`📌 첫 번째 이미지로 등록됨: ${firstImageUrl}`);
-    }
-
-    for (const domain of fairTradeImageLinks) {
-      if (src.includes(domain)) {
-        fairTradeImgUrl = src;
-        fairTradeImgPosition = i + 1;
-        //console.log(`✅ 공정위 이미지 발견: ${src} (도메인: ${domain}, 위치: ${fairTradeImgPosition})`);
-        return false; // break
+      if (!firstImageUrl &&
+        !classAttr.includes('se-oglink-thumbnail-resource') &&
+        !classAttr.includes('se-map-image')) {
+        firstImageUrl = src;
+        console.log('class: ', classAttr);
       }
-    }
-  });
 
-  const allText = contentDiv.text().replace(/\s+/g, '').trim();
-  const first100Chars = allText.slice(0, 200);
+      for (const domain of fairTradeImageLinks) {
+        if (src.includes(domain)) {
+          fairTradeImgUrl = src;
+          fairTradeImgPosition = i + 1;
+          return false; // break
+        }
+      }
+    });
 
-  const result = {
-    title,
-    url: postUrl,
-    date,
-    fair_trade_img_url: fairTradeImgUrl,
-    fair_trade_img_position: fairTradeImgPosition,
-    first_image_url: firstImageUrl,
-    first_100_chars: first100Chars
-  };
+    const allText = contentDiv.text().replace(/\s+/g, '').trim();
+    const first100Chars = allText.slice(0, 200);
 
-  //console.log("📤 분석 결과 반환:", result);
-  //console.log("\n\n");
+    const result = {
+      title,
+      url: postUrl,
+      date,
+      fair_trade_img_url: fairTradeImgUrl,
+      fair_trade_img_position: fairTradeImgPosition,
+      first_image_url: firstImageUrl,
+      first_100_chars: first100Chars
+    };
 
-  return result;
+    //console.log("📤 분석 결과 반환:", result);
+    //console.log("\n\n");
+
+    return result;
 
   } catch (error) {
     const statusCode = error?.response?.status;
