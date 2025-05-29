@@ -37,6 +37,11 @@
       <p class="text-sm text-gray-600 mt-2">
         공정위 표시광고 가이드에 따라 네이버 블로그 체험단 문구를 자동 분석하는 무료 도구입니다.
       </p>
+      <!-- 누적 분석 수 표시 -->
+      <div id="totalPostCounter" class="text-center text-sm text-gray-600 mt-2">
+        📊 지금까지 <span class="font-semibold text-blue-700" id="totalPostValue">0</span>건이 분석되었습니다.
+      </div>
+
     </section>
 
     <!-- 전체 그룹 -->
@@ -1142,6 +1147,20 @@
         renderPosts(globalPostData);
         renderTxt(filtered);
 
+        // 누적 count 증가
+        try {
+          const { doc, updateDoc, increment, db } = window.firestoreUtils;
+          const counterRef = doc(db, "statistics", "total_counter");
+          await updateDoc(counterRef, { count: increment(filtered.length) });
+          console.log(`📈 Firestore 누적 수 ${filtered.length}건 증가`);
+
+          // ✅ UI에 바로 업데이트
+          await window.loadTotalCount();
+
+        } catch (err) {
+          console.error("❌ Firestore 누적 증가 실패:", err);
+        }
+
         loadingText.textContent = `✅ 분석 완료! 총 ${filtered.length}건`;
         loadingBarFill.style.width = "100%";
 
@@ -1176,7 +1195,10 @@
       limit,
       onSnapshot,
       deleteDoc,       // ✅ 이 줄 추가!
-      doc              // ✅ 이 줄도 함께 필요 (문서 참조용)
+      doc,
+      getDoc,
+      updateDoc,
+      increment
     } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
     import {
       getAuth,
@@ -1184,6 +1206,13 @@
       signOut,
       onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
+
+    async function loadTotalCount() {
+      const counterRef = doc(db, "statistics", "total_counter");
+      const snapshot = await getDoc(counterRef);
+      const count = snapshot.exists() ? snapshot.data().count : 0;
+      document.getElementById("totalPostValue").textContent = count.toLocaleString();
+    }
 
     // TODO: Add SDKs for Firebase products that you want to use
     // https://firebase.google.com/docs/web/setup#available-libraries
@@ -1415,6 +1444,8 @@
     });
 
     window.addEventListener("DOMContentLoaded", () => {
+      loadTotalCount();
+
       const nicknameInput = document.getElementById("nickname");
       if (!nicknameInput.value) {
         nicknameInput.value = generateRandomNickname();  // ✅ 실제 입력값으로 설정
@@ -1460,6 +1491,13 @@
       });
     });
 
+    window.firestoreUtils = {
+      doc,
+      updateDoc,
+      increment,
+      db
+    };
+    window.loadTotalCount = loadTotalCount;
 
   </script>
 </body>

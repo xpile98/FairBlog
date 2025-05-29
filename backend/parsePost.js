@@ -39,7 +39,7 @@ async function parseBlogPostContent(postUrl, fairTradeImageLinks) {
         !classAttr.includes('se-oglink-thumbnail-resource') &&
         !classAttr.includes('se-map-image')) {
         firstImageUrl = src;
-        console.log('class: ', classAttr);
+        //console.log('class: ', classAttr);
       }
 
       for (const domain of fairTradeImageLinks) {
